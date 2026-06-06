@@ -215,6 +215,20 @@ class TensorBoardLogger:
 
         self.writer.add_text(f"Deployment/{model_name}", summary, 0)
 
+    # ---- Figure logging (Phase 3) ----
+
+    def log_figure(
+        self, tag: str, figure: "matplotlib.figure.Figure", step: int = 0
+    ) -> None:
+        """Log a matplotlib figure to TensorBoard.
+
+        Args:
+            tag: TensorBoard tag for the figure.
+            figure: Matplotlib Figure object to embed.
+            step: Global step (default 0 for one-off comparisons).
+        """
+        self.writer.add_figure(tag, figure, step)
+
     # ---- Lifecycle ----
 
     def close(self) -> None:
