@@ -6,6 +6,9 @@ __pycache__/
 *.pyc
 
 data/
+features/
+checkpoints/
+runs/
 experiments/logs/
 experiments/checkpoints/
 
