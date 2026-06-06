@@ -1,0 +1,51 @@
+# =============================================================================
+# Teacher Fine-tuning Configuration
+# =============================================================================
+# Fine-tune the 3D ResNet-50 teacher model (with ImageNet-inflated weights)
+# on HMDB-51. This establishes the upper-bound accuracy baseline.
+#
+# Usage:
+#   python -m src.training.train_baseline --config experiments/configs/teacher.yaml
+# =============================================================================
+
+experiment:
+  name: "teacher_finetune"
+  seed: 42
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 8          # Smaller batch due to larger model memory footprint
+  num_workers: 4
+
+model:
+  model: "teacher"
+  num_classes: 51
+  pretrained: true       # Load ImageNet-inflated weights
+  dropout: 0.5           # Higher dropout for the larger model
+
+training:
+  epochs: 50             # Fewer epochs since we start from pre-trained weights
+  lr: 0.001              # Lower LR for fine-tuning
+  momentum: 0.9
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  warmup_epochs: 3
+  label_smoothing: 0.1   # Mild label smoothing for regularization
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/teacher"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/teacher"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
