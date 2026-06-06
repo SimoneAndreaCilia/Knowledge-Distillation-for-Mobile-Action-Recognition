@@ -1,0 +1,64 @@
+# =============================================================================
+# Knowledge Distillation — Temperature T=10
+# =============================================================================
+# T=10 produces significantly softened distributions. At this temperature,
+# even low-probability classes receive meaningful probability mass, which
+# helps the Student learn nuanced inter-class relationships. However,
+# the signal-to-noise ratio decreases compared to T=5.
+#
+# Usage:
+#   python -m src.training.train_distill --config experiments/configs/distill_T10.yaml
+# =============================================================================
+
+experiment:
+  name: "distilled_T10"
+  seed: 42
+
+teacher:
+  teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
+  teacher_num_classes: 51
+
+student:
+  num_classes: 51
+  width_mult: 1.0
+  dropout: 0.2
+
+distillation:
+  temperature: 10.0
+  alpha: 0.3
+  use_attention_transfer: false
+  at_beta: 1000.0
+  use_hint_learning: false
+  hint_beta: 0.5
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 16
+  num_workers: 4
+
+training:
+  epochs: 100
+  lr: 0.01
+  momentum: 0.9
+  weight_decay: 0.0001
+  scheduler: "cosine"
+  warmup_epochs: 5
+  label_smoothing: 0.0
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/distilled_T10"
+  max_keep: 5
+  resume: true
+
+logging:
+  log_dir: "./runs/distilled_T10"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
