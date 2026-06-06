@@ -2,7 +2,12 @@
 """Smoke test: verifies models, losses, checkpointing, profiling, KD, and comparison figures."""
 
 import os
+import sys
 import shutil
+
+# Add the project root to sys.path so we can import 'src' easily
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import torch
 import numpy as np
 import logging
