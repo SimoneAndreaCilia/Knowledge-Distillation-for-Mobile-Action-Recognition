@@ -1,9 +1,12 @@
 # =============================================================================
-# Knowledge Distillation — Temperature T=1 (Hard Softmax)
+# Knowledge Distillation — Temperature T=1 (Hard Softmax / Control)
 # =============================================================================
 # At T=1 the softmax is standard (no smoothing). The KL divergence mainly
 # transfers the top-1 prediction confidence. Minimal inter-class structure
-# is revealed. This serves as the "no temperature" control.
+# is revealed. This serves as the "no temperature" control experiment.
+#
+# Teacher: Kinetics-400 pre-trained 3D ResNet-50 (frozen, ~62.94% on HMDB-51)
+# Student: 3D MobileNet (trainable, ~2.2M params)
 #
 # Usage:
 #   python -m src.training.train_distill --config experiments/configs/distill_T1.yaml
@@ -16,14 +19,15 @@ experiment:
 teacher:
   teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
   teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
 
 student:
   num_classes: 51
   width_mult: 1.0
-  dropout: 0.2
+  dropout: 0.5
 
 distillation:
-  temperature: 1.0
+  temperature: 1.0           # No softening — standard softmax
   alpha: 0.3
   use_attention_transfer: false
   at_beta: 1000.0
@@ -37,25 +41,25 @@ data:
   split: 1
   num_frames: 16
   frame_size: 112
-  batch_size: 16
+  batch_size: 64
   num_workers: 4
 
 training:
   epochs: 100
-  lr: 0.01
+  lr: 0.02
   momentum: 0.9
-  weight_decay: 0.0001
+  weight_decay: 0.001
   scheduler: "cosine"
-  warmup_epochs: 5
-  label_smoothing: 0.0
+  warmup_epochs: 10
+  label_smoothing: 0.1
 
 checkpoint:
   checkpoint_dir: "./checkpoints/distilled_T1"
-  max_keep: 5
+  max_keep: 3
   resume: true
 
 logging:
-  log_dir: "./runs/distilled_T1"
+  log_dir: "./runs/03_kd_profs/distilled_T1"
   log_interval: 10
 
 cluster:

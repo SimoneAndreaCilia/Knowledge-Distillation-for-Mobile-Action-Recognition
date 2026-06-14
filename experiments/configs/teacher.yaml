@@ -59,7 +59,7 @@ checkpoint:
   resume: true
 
 logging:
-  log_dir: "./runs/teacher"
+  log_dir: "./runs/01_teacher"
   log_interval: 10
 
 cluster:
