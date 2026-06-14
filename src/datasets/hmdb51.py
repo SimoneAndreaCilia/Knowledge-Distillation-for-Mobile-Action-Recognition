@@ -208,16 +208,17 @@ class HMDB51VideoDataset(Dataset):
         Returns:
             NumPy array of shape ``(total_frames, H, W, 3)`` in uint8.
         """
-        # ---- Strategy 1: torchvision.io (preferred) ----
-        try:
-            import torchvision.io as vio
-            video_tensor, _, _ = vio.read_video(
-                video_path, pts_unit="sec"
-            )
-            # video_tensor: (T, H, W, C) uint8
-            return video_tensor.numpy()
-        except Exception:
-            pass
+                # ---- Strategy 1: torchvision.io (preferred) ----
+        # try:
+        #     import torchvision.io as vio
+        #     video_tensor, _, _ = vio.read_video(
+        #         video_path, pts_unit="sec"
+        #     )
+        #     # video_tensor: (T, H, W, C) uint8
+        #     return video_tensor.numpy()
+        # except Exception:
+        #     pass
+
 
         # ---- Strategy 2: OpenCV fallback ----
         try:

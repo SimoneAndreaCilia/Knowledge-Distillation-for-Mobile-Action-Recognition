@@ -109,6 +109,13 @@ def parse_args() -> argparse.Namespace:
         help="Path to the trained Teacher model checkpoint.",
     )
     parser.add_argument("--teacher_num_classes", type=int, default=51)
+    parser.add_argument(
+        "--teacher_pretrained_source", type=str, default="kinetics",
+        choices=["kinetics", "imagenet"],
+        help="Architecture variant used to train the Teacher. Must match "
+             "the source used during baseline training so the model "
+             "architecture (stem config) matches the saved weights.",
+    )
 
     # ---- Student ----
     parser.add_argument("--num_classes", type=int, default=51)
@@ -477,7 +484,8 @@ def main() -> None:
     teacher = build_model(
         model_name="teacher",
         num_classes=args.teacher_num_classes,
-        pretrained=False,
+        pretrained=False,  # We load from checkpoint, not pre-trained
+        pretrained_source=args.teacher_pretrained_source,  # Architecture config
     )
 
     teacher_ckpt = torch.load(

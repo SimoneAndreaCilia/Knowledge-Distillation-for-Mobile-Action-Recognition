@@ -91,6 +91,29 @@ def parse_args() -> argparse.Namespace:
     Returns:
         Parsed ``argparse.Namespace`` with all training parameters.
     """
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    # ---- Load YAML config and merge ----
+    if args.config is not None:
+        args = _merge_yaml_config(args, parser)
+
+    # Handle --no_resume flag
+    if args.no_resume:
+        args.resume = False
+
+    return args
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    """Build the argument parser with all CLI options.
+
+    Extracted into a separate function so that ``_merge_yaml_config``
+    can call ``parser.set_defaults()`` and re-parse.
+
+    Returns:
+        Configured ``ArgumentParser`` instance.
+    """
     parser = argparse.ArgumentParser(
         description="Baseline training for Knowledge Distillation pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -115,7 +138,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--num_classes", type=int, default=51)
     parser.add_argument(
         "--pretrained", action="store_true",
-        help="Load ImageNet-inflated pre-trained weights (teacher only).",
+        help="Load pre-trained weights (teacher only).",
+    )
+    parser.add_argument(
+        "--pretrained_source", type=str, default="kinetics",
+        choices=["kinetics", "imagenet"],
+        help="Source of pre-trained weights for the teacher model. "
+             "'kinetics' loads native 3D Kinetics-400 weights (recommended). "
+             "'imagenet' inflates 2D ImageNet weights to 3D.",
+    )
+    parser.add_argument(
+        "--pretrained_path", type=str, default=None,
+        help="Path to the Kinetics pre-trained .pth checkpoint file "
+             "(e.g., './pretrained/r3d50_K_200ep.pth'). Required when "
+             "pretrained_source='kinetics' and --pretrained is set.",
     )
     parser.add_argument(
         "--width_mult", type=float, default=1.0,
@@ -159,6 +195,16 @@ def parse_args() -> argparse.Namespace:
         "--warmup_epochs", type=int, default=5,
         help="Number of linear warmup epochs before the main scheduler.",
     )
+    parser.add_argument(
+        "--freeze_backbone_epochs", type=int, default=0,
+        help="Number of initial epochs to freeze the backbone (train only "
+             "the classifier head). Set >0 for pre-trained teacher fine-tuning.",
+    )
+    parser.add_argument(
+        "--backbone_lr_factor", type=float, default=0.1,
+        help="LR multiplier for backbone parameters after unfreezing. "
+             "E.g. 0.1 means backbone LR = main LR * 0.1.",
+    )
     parser.add_argument("--label_smoothing", type=float, default=0.0)
 
     # ---- Checkpointing ----
@@ -190,30 +236,25 @@ def parse_args() -> argparse.Namespace:
              "graceful checkpoint saving.",
     )
 
-    args = parser.parse_args()
-
-    # ---- Load YAML config and merge ----
-    if args.config is not None:
-        args = _merge_yaml_config(args)
-
-    # Handle --no_resume flag
-    if args.no_resume:
-        args.resume = False
-
-    return args
+    return parser
 
 
-def _merge_yaml_config(args: argparse.Namespace) -> argparse.Namespace:
+def _merge_yaml_config(
+    args: argparse.Namespace, parser: argparse.ArgumentParser
+) -> argparse.Namespace:
     """Merge YAML config into argparse namespace.
 
-    Values from the YAML file are used as defaults; any explicitly
-    provided CLI arguments take priority.
+    YAML values serve as defaults; explicit CLI arguments take priority.
+    This is achieved by using ``parser.set_defaults()`` with the YAML
+    values and then re-parsing, so argparse's own precedence logic
+    handles the override correctly.
 
     Args:
-        args: Parsed CLI arguments.
+        args: Parsed CLI arguments (used only to read ``--config``).
+        parser: The argument parser instance (needed for re-parsing).
 
     Returns:
-        Updated namespace with YAML defaults applied.
+        Updated namespace with YAML defaults applied, CLI overrides intact.
     """
     with open(args.config, "r") as f:
         config = yaml.safe_load(f)
@@ -226,11 +267,11 @@ def _merge_yaml_config(args: argparse.Namespace) -> argparse.Namespace:
         else:
             flat_config[section_name] = section_dict
 
-    # Apply YAML values only where CLI didn't provide an explicit value
-    # (argparse defaults are overridden by YAML; explicit CLI overrides YAML)
-    for key, value in flat_config.items():
-        if hasattr(args, key):
-            setattr(args, key, value)
+    # Set YAML values as defaults, then re-parse so that explicit CLI
+    # arguments override them (argparse handles the precedence).
+    valid_keys = {k: v for k, v in flat_config.items() if hasattr(args, k)}
+    parser.set_defaults(**valid_keys)
+    args = parser.parse_args()
 
     logger.info(f"Loaded config from: {args.config}")
     return args
@@ -413,6 +454,102 @@ def build_scheduler(
 
 
 # ======================================================================
+# BACKBONE FREEZING HELPERS
+# ======================================================================
+
+def _freeze_backbone(model: nn.Module) -> None:
+    """Freeze all layers except the final classifier (``fc``).
+
+    Used during Phase 1 of fine-tuning: only the classification head is
+    trained while the pre-trained backbone features are preserved.
+    """
+    for name, param in model.named_parameters():
+        if not name.startswith("fc"):
+            param.requires_grad = False
+
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    logger.info(
+        f"Backbone FROZEN: {trainable:,} / {total:,} params trainable "
+        f"(only classifier head)"
+    )
+
+
+def _unfreeze_backbone(model: nn.Module) -> None:
+    """Unfreeze all layers in the model.
+
+    Used when transitioning from Phase 1 (frozen backbone) to Phase 2
+    (full fine-tuning with differential learning rate).
+    """
+    for param in model.parameters():
+        param.requires_grad = True
+
+    trainable = sum(p.numel() for p in model.parameters())
+    logger.info(f"Backbone UNFROZEN: all {trainable:,} params trainable")
+
+
+def _build_optimizer(
+    model: nn.Module,
+    args: argparse.Namespace,
+    differential_lr: bool = False,
+) -> torch.optim.Optimizer:
+    """Build SGD optimizer, optionally with per-group learning rates.
+
+    When ``differential_lr=True``, backbone parameters get a reduced
+    learning rate (``args.lr * args.backbone_lr_factor``) while the
+    classifier head keeps the full ``args.lr``.
+
+    Args:
+        model: The model to optimize.
+        args: Training arguments.
+        differential_lr: If True, use separate LR for backbone vs head.
+
+    Returns:
+        Configured ``SGD`` optimizer.
+    """
+    if differential_lr:
+        # Separate backbone and head parameters
+        backbone_params = []
+        head_params = []
+        for name, param in model.named_parameters():
+            if not param.requires_grad:
+                continue
+            if name.startswith("fc"):
+                head_params.append(param)
+            else:
+                backbone_params.append(param)
+
+        param_groups = [
+            {
+                "params": backbone_params,
+                "lr": args.lr * args.backbone_lr_factor,
+                "name": "backbone",
+            },
+            {
+                "params": head_params,
+                "lr": args.lr,
+                "name": "head",
+            },
+        ]
+        logger.info(
+            f"Differential LR: backbone={args.lr * args.backbone_lr_factor:.6f}, "
+            f"head={args.lr:.6f}"
+        )
+    else:
+        # Use only trainable parameters (important when backbone is frozen)
+        param_groups = [
+            {"params": filter(lambda p: p.requires_grad, model.parameters())}
+        ]
+
+    return torch.optim.SGD(
+        param_groups,
+        lr=args.lr,
+        momentum=args.momentum,
+        weight_decay=args.weight_decay,
+    )
+
+
+# ======================================================================
 # MAIN TRAINING LOOP
 # ======================================================================
 
@@ -424,10 +561,12 @@ def main() -> None:
       2. Set random seed for reproducibility.
       3. Build dataset and data loaders.
       4. Build model, optimizer, and scheduler.
-      5. Attempt to resume from checkpoint.
-      6. Run the training loop with per-epoch validation.
-      7. Save checkpoints and log to TensorBoard.
-      8. Respect the cluster time limit.
+      5. (Optional) Freeze backbone for Phase 1 fine-tuning.
+      6. Attempt to resume from checkpoint.
+      7. Run the training loop with per-epoch validation.
+      8. At the unfreeze epoch, rebuild optimizer with differential LR.
+      9. Save checkpoints and log to TensorBoard.
+     10. Respect the cluster time limit.
     """
     args = parse_args()
 
@@ -479,6 +618,8 @@ def main() -> None:
         model_name=args.model,
         num_classes=args.num_classes,
         pretrained=args.pretrained,
+        pretrained_source=args.pretrained_source,
+        pretrained_path=args.pretrained_path,
         width_mult=args.width_mult,
         dropout=args.dropout,
     )
@@ -487,13 +628,21 @@ def main() -> None:
     total_params = sum(p.numel() for p in model.parameters())
     logger.info(f"Model parameters: {total_params:,}")
 
-    # ---- Build optimizer ----
-    optimizer = torch.optim.SGD(
-        model.parameters(),
-        lr=args.lr,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay,
+    # ---- Phase 1: Freeze backbone if configured ----
+    use_freeze = (
+        args.freeze_backbone_epochs > 0
+        and args.pretrained
+        and args.model in ("teacher", "resnet3d_50")
     )
+    if use_freeze:
+        logger.info(
+            f"Phase 1: Freezing backbone for {args.freeze_backbone_epochs} epochs "
+            f"(training only classifier head)"
+        )
+        _freeze_backbone(model)
+
+    # ---- Build optimizer (Phase 1: only head params if frozen) ----
+    optimizer = _build_optimizer(model, args, differential_lr=False)
 
     # ---- Build scheduler ----
     scheduler = build_scheduler(
@@ -518,6 +667,20 @@ def main() -> None:
                 checkpoint, model, optimizer, scheduler, device
             )
             best_acc = checkpoint.get("best_acc", 0.0)
+            # If resuming past the freeze epoch, ensure backbone is unfrozen
+            if use_freeze and start_epoch >= args.freeze_backbone_epochs:
+                _unfreeze_backbone(model)
+                optimizer = _build_optimizer(
+                    model, args, differential_lr=True
+                )
+                scheduler = build_scheduler(
+                    optimizer, args.scheduler,
+                    args.epochs - args.freeze_backbone_epochs,
+                    warmup_epochs=2,
+                )
+                logger.info(
+                    f"Resumed past freeze epoch — backbone already unfrozen"
+                )
 
     # ---- TensorBoard logger ----
     tb_logger = TensorBoardLogger(
@@ -565,6 +728,22 @@ def main() -> None:
                 )
                 break
 
+        # ---- Phase transition: unfreeze backbone ----
+        if use_freeze and epoch == args.freeze_backbone_epochs:
+            logger.info("=" * 72)
+            logger.info(
+                f"Phase 2: Unfreezing backbone at epoch {epoch} — "
+                f"switching to differential LR"
+            )
+            _unfreeze_backbone(model)
+            optimizer = _build_optimizer(model, args, differential_lr=True)
+            scheduler = build_scheduler(
+                optimizer, args.scheduler,
+                args.epochs - args.freeze_backbone_epochs,
+                warmup_epochs=2,  # Brief warmup for the newly unfrozen params
+            )
+            logger.info("=" * 72)
+
         # ---- Train one epoch ----
         train_loss, train_acc = train_one_epoch(
             model, train_loader, criterion, optimizer, device,
@@ -611,12 +790,17 @@ def main() -> None:
         epoch_time = time.time() - epoch_start
         epoch_durations.append(epoch_time)
 
+        # Show LR info for all parameter groups
+        lr_info = " | ".join(
+            f"LR[{g.get('name', i)}]: {g['lr']:.6f}"
+            for i, g in enumerate(optimizer.param_groups)
+        )
         star = " ★" if is_best else ""
         logger.info(
             f"Epoch {epoch:03d}/{args.epochs - 1} | "
             f"Train Loss: {train_loss:.4f} Acc: {train_acc:.1f}% | "
             f"Val Loss: {val_loss:.4f} Acc: {val_acc:.1f}%{star} | "
-            f"LR: {current_lr:.6f} | "
+            f"{lr_info} | "
             f"Time: {epoch_time:.0f}s"
         )
 

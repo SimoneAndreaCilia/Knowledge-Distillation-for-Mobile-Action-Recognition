@@ -1,15 +1,27 @@
 # =============================================================================
-# Teacher Fine-tuning Configuration
+# Teacher Fine-tuning Configuration — Kinetics-400 Pre-trained
 # =============================================================================
-# Fine-tune the 3D ResNet-50 teacher model (with ImageNet-inflated weights)
-# on HMDB-51. This establishes the upper-bound accuracy baseline.
+# Fine-tune the 3D ResNet-50 teacher model using native Kinetics-400
+# pre-trained weights (Hara et al., CVPR 2018) on HMDB-51.
+#
+# This establishes the upper-bound accuracy baseline for the KD pipeline.
+#
+# Strategy: 2-phase fine-tuning
+#   Phase 1 (epochs 0-4):   Backbone frozen, train only the classifier head.
+#   Phase 2 (epochs 5+):    Backbone unfrozen with differential LR
+#                           (backbone at LR/10, head at full LR).
+#
+# Pre-requisite:
+#   Download r3d50_K_200ep.pth from:
+#     https://github.com/kenshohara/3D-ResNets-PyTorch/releases
+#   Place it in: ./pretrained/r3d50_K_200ep.pth
 #
 # Usage:
 #   python -m src.training.train_baseline --config experiments/configs/teacher.yaml
 # =============================================================================
 
 experiment:
-  name: "teacher_finetune"
+  name: "teacher_kinetics_finetune"
   seed: 42
 
 data:
@@ -19,23 +31,27 @@ data:
   split: 1
   num_frames: 16
   frame_size: 112
-  batch_size: 8          # Smaller batch due to larger model memory footprint
+  batch_size: 24            # L40S 48GB can handle 24-32
   num_workers: 4
 
 model:
   model: "teacher"
   num_classes: 51
-  pretrained: true       # Load ImageNet-inflated weights
-  dropout: 0.5           # Higher dropout for the larger model
+  pretrained: true
+  pretrained_source: "kinetics"
+  pretrained_path: "./pretrained/r3d50_K_200ep.pth"
+  dropout: 0.5
 
 training:
-  epochs: 50             # Fewer epochs since we start from pre-trained weights
-  lr: 0.001              # Lower LR for fine-tuning
+  epochs: 40                 # Kinetics weights converge faster
+  lr: 0.001                  # Base LR (applied to classifier head)
   momentum: 0.9
-  weight_decay: 0.0001
+  weight_decay: 0.0005       # Stronger regularization for small dataset
   scheduler: "cosine"
   warmup_epochs: 3
-  label_smoothing: 0.1   # Mild label smoothing for regularization
+  label_smoothing: 0.1       # Mild label smoothing for regularization
+  freeze_backbone_epochs: 5  # Phase 1: train only head for 5 epochs
+  backbone_lr_factor: 0.1    # Phase 2: backbone LR = 0.001 * 0.1 = 0.0001
 
 checkpoint:
   checkpoint_dir: "./checkpoints/teacher"

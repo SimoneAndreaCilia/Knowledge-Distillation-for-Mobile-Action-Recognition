@@ -17,3 +17,8 @@ experiments/checkpoints/
 *.log
 
 .DS_Store
+
+*.pth
+*.pt
+*.bin
+pretrained/*.pth

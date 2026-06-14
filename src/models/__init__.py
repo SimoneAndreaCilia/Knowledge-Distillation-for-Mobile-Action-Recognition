@@ -39,6 +39,8 @@ def build_model(
     model_name: str,
     num_classes: int = 51,
     pretrained: bool = False,
+    pretrained_source: str = "kinetics",
+    pretrained_path: Optional[str] = None,
     width_mult: float = 1.0,
     dropout: float = 0.2,
 ) -> nn.Module:
@@ -51,8 +53,13 @@ def build_model(
         model_name: One of ``"teacher"``, ``"resnet3d_50"``, ``"student"``,
             or ``"mobilenet3d"``.
         num_classes: Number of output action classes (51 for HMDB-51).
-        pretrained: If ``True``, load ImageNet-inflated pre-trained weights
-            (teacher only).
+        pretrained: If ``True``, load pre-trained weights.
+        pretrained_source: Source of pre-trained weights for the teacher.
+            ``"kinetics"`` (recommended) or ``"imagenet"`` (fallback).
+            Ignored for the student.
+        pretrained_path: Path to the Kinetics ``.pth`` checkpoint file.
+            Required when ``pretrained_source="kinetics"`` and
+            ``pretrained=True``. Ignored for the student.
         width_mult: Width multiplier for the student model. Controls the
             number of channels in each layer. Default 1.0. Ignored for
             the teacher.
@@ -75,6 +82,8 @@ def build_model(
         return resnet3d_50(
             num_classes=num_classes,
             pretrained=pretrained,
+            pretrained_source=pretrained_source,
+            pretrained_path=pretrained_path,
             dropout=dropout,
         )
     elif canonical == "mobilenet3d":
@@ -85,3 +94,4 @@ def build_model(
         )
     else:
         raise ValueError(f"No builder for canonical model: {canonical}")
+
