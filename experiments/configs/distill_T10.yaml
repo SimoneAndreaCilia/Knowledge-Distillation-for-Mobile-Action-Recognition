@@ -6,6 +6,9 @@
 # helps the Student learn nuanced inter-class relationships. However,
 # the signal-to-noise ratio decreases compared to T=5.
 #
+# Teacher: Kinetics-400 pre-trained 3D ResNet-50 (frozen, ~62.94% on HMDB-51)
+# Student: 3D MobileNet (trainable, ~2.2M params)
+#
 # Usage:
 #   python -m src.training.train_distill --config experiments/configs/distill_T10.yaml
 # =============================================================================
@@ -17,14 +20,15 @@ experiment:
 teacher:
   teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
   teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
 
 student:
   num_classes: 51
   width_mult: 1.0
-  dropout: 0.2
+  dropout: 0.5
 
 distillation:
-  temperature: 10.0
+  temperature: 10.0          # Strongly softened distributions
   alpha: 0.3
   use_attention_transfer: false
   at_beta: 1000.0
@@ -38,21 +42,21 @@ data:
   split: 1
   num_frames: 16
   frame_size: 112
-  batch_size: 16
+  batch_size: 64
   num_workers: 4
 
 training:
   epochs: 100
-  lr: 0.01
+  lr: 0.02
   momentum: 0.9
-  weight_decay: 0.0001
+  weight_decay: 0.001
   scheduler: "cosine"
-  warmup_epochs: 5
-  label_smoothing: 0.0
+  warmup_epochs: 10
+  label_smoothing: 0.1
 
 checkpoint:
   checkpoint_dir: "./checkpoints/distilled_T10"
-  max_keep: 5
+  max_keep: 3
   resume: true
 
 logging:

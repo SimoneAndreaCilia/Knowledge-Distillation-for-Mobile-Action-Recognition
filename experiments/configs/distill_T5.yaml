@@ -1,9 +1,15 @@
 # =============================================================================
-# Knowledge Distillation — Temperature T=5 (Default)
+# Knowledge Distillation — Temperature T=5 (Default / Recommended)
 # =============================================================================
 # T=5 is the recommended starting point. Moderately softened distributions
 # reveal inter-class similarities (e.g., "push" vs "pull") without
 # flattening the distribution so much that the signal is lost.
+#
+# Teacher: Kinetics-400 pre-trained 3D ResNet-50 (frozen, ~62.94% on HMDB-51)
+# Student: 3D MobileNet (trainable, ~2.2M params)
+#
+# Loss: α · CE(student, labels) + (1-α) · T² · KL(σ(z_t/T) || σ(z_s/T))
+#   α=0.3 → 30% hard labels, 70% soft knowledge from Teacher
 #
 # Usage:
 #   python -m src.training.train_distill --config experiments/configs/distill_T5.yaml
@@ -16,15 +22,16 @@ experiment:
 teacher:
   teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
   teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"  # Must match Teacher training architecture
 
 student:
   num_classes: 51
   width_mult: 1.0
-  dropout: 0.2
+  dropout: 0.5              # Strong regularization (consistent with student baseline)
 
 distillation:
-  temperature: 5.0
-  alpha: 0.3
+  temperature: 5.0           # Moderate softening — good dark knowledge transfer
+  alpha: 0.3                 # 30% CE + 70% KD
   use_attention_transfer: false
   at_beta: 1000.0
   use_hint_learning: false
@@ -37,21 +44,21 @@ data:
   split: 1
   num_frames: 16
   frame_size: 112
-  batch_size: 16
+  batch_size: 64             # Large batch for stable gradients
   num_workers: 4
 
 training:
   epochs: 100
-  lr: 0.01
+  lr: 0.02                   # Scaled for batch_size=64 (linear scaling rule)
   momentum: 0.9
-  weight_decay: 0.0001
+  weight_decay: 0.001        # Strong regularization
   scheduler: "cosine"
-  warmup_epochs: 5
-  label_smoothing: 0.0
+  warmup_epochs: 10          # Long warmup for higher LR
+  label_smoothing: 0.1
 
 checkpoint:
   checkpoint_dir: "./checkpoints/distilled_T5"
-  max_keep: 5
+  max_keep: 3
   resume: true
 
 logging:
