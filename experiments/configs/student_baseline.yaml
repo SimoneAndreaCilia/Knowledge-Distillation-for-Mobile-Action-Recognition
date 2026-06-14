@@ -1,0 +1,61 @@
+# =============================================================================
+# Student Baseline Configuration
+# =============================================================================
+# Train the 3D MobileNet (Student) from scratch using only hard labels.
+# This establishes the lower-bound accuracy for the distillation pipeline.
+#
+# Because we are training from scratch (no pre-trained Kinetics features)
+# on a small dataset (HMDB-51), we need:
+#   - Large batch size (64) for stable gradients.
+#   - Aggressive Learning Rate (0.02) scaled for the large batch size.
+#   - Long training schedule (100 epochs) with 10 epochs of warmup.
+#   - Strong regularization (dropout 0.5, weight_decay 0.001) to prevent
+#     memorization of the training set.
+#
+# Usage:
+#   python -m src.training.train_baseline --config experiments/configs/student_baseline.yaml
+# =============================================================================
+
+experiment:
+  name: "student_baseline_w1.0"
+  seed: 42
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 64            # Large batch size for stable gradients from scratch
+  num_workers: 4
+
+model:
+  model: "student"
+  num_classes: 51
+  width_mult: 1.0           # Standard 3D MobileNet (~2.2M params)
+  pretrained: false         # Train from scratch
+  dropout: 0.5              # Strong dropout for from-scratch training
+
+training:
+  epochs: 100               # Long schedule since we start from random initialization
+  lr: 0.02                  # Aggressive learning rate (scaled for bs=64)
+  momentum: 0.9
+  weight_decay: 0.001       # Strong regularization to mitigate overfitting
+  scheduler: "cosine"
+  warmup_epochs: 10         # Long warmup to stabilize initial learning
+  label_smoothing: 0.1
+  freeze_backbone_epochs: 0 # NEVER freeze the student
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/student_baseline"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/student_baseline"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
