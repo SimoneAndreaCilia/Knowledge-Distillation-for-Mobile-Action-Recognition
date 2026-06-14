@@ -59,7 +59,7 @@ checkpoint:
   resume: true
 
 logging:
-  log_dir: "./runs/distilled_T1"
+  log_dir: "./runs/03_kd_profs/distilled_T1"
   log_interval: 10
 
 cluster:

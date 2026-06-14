@@ -62,7 +62,7 @@ checkpoint:
   resume: true
 
 logging:
-  log_dir: "./runs/distilled_T5"
+  log_dir: "./runs/03_kd_profs/distilled_T5"
   log_interval: 10
 
 cluster:

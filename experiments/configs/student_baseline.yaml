@@ -53,7 +53,7 @@ checkpoint:
   resume: true
 
 logging:
-  log_dir: "./runs/student_baseline"
+  log_dir: "./runs/02_student_baseline"
   log_interval: 10
 
 cluster:
