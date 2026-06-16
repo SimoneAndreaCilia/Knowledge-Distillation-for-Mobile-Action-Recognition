@@ -1,0 +1,91 @@
+# =============================================================================
+# Knowledge Distillation — FINAL Configuration (T=10, α=1.5)
+# =============================================================================
+# This is the definitive distillation configuration, combining the best
+# insights from the temperature ablation study with an enlarged Student
+# to maximise knowledge absorption from the Teacher.
+#
+# Key design decisions:
+#
+#   T=10:  Strongly softened distributions expose rich inter-class
+#          structure ("dark knowledge"). While T=5 is the conservative
+#          default, T=10 provides the Student with more nuanced relational
+#          information between actions (e.g., "push" ↔ "pull",
+#          "wave" ↔ "clap"), which a higher-capacity Student can exploit.
+#
+#   width_mult=1.5:  Scales all MobileNet3D channel counts by 1.5×,
+#          approximately doubling the parameter count to ~4.7M.
+#          This yields a compression ratio of ~7× relative to the
+#          Teacher (~33M params), well within the project's 5–10×
+#          requirement. The extra capacity gives the Student the
+#          "cerebral bandwidth" needed to absorb the richer dark
+#          knowledge provided by T=10.
+#
+# Compression budget:
+#   Teacher:  3D ResNet-50   → ~33.2M params
+#   Student:  MobileNet3D α=1.5 → ~4.7M params
+#   Ratio:    ~7.1× compression  ✓ (target: 5–10×)
+#
+# Teacher: Kinetics-400 pre-trained 3D ResNet-50 (frozen, ~62.94% on HMDB-51)
+# Student: 3D MobileNet (trainable, α=1.5, ~4.7M params)
+#
+# Loss: α_kd · CE(student, labels) + (1−α_kd) · T² · KL(σ(z_t/T) ‖ σ(z_s/T))
+#   α_kd=0.3 → 30% hard labels, 70% soft knowledge from Teacher
+#
+# Usage:
+#   python -m src.training.train_distill --config experiments/configs/distill_final.yaml
+# =============================================================================
+
+experiment:
+  experiment_name: "distilled_final_T10_w1.5"
+  seed: 42
+
+teacher:
+  teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
+  teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
+
+student:
+  num_classes: 51
+  width_mult: 1.5              # ↑ from 1.0 → ~4.7M params (~7× compression)
+  dropout: 0.5                 # Strong regularization (consistent with all runs)
+
+distillation:
+  temperature: 10.0            # Strongly softened — rich dark knowledge transfer
+  alpha: 0.3                   # 30% CE + 70% KD (proven effective in ablations)
+  use_attention_transfer: false
+  at_beta: 1000.0
+  use_hint_learning: false
+  hint_beta: 0.5
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 48               # ↓ from 64 — larger Student needs more VRAM
+  num_workers: 4
+
+training:
+  epochs: 100
+  lr: 0.015                    # Scaled down slightly for batch_size=48
+  momentum: 0.9
+  weight_decay: 0.001
+  scheduler: "cosine"
+  warmup_epochs: 10
+  label_smoothing: 0.1
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/distilled_final_T10_w1.5"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/03_kd_profs/distilled_final_T10_w1.5"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
