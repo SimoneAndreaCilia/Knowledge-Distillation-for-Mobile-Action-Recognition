@@ -16,7 +16,7 @@
 # =============================================================================
 
 experiment:
-  name: "distilled_T5"
+  experiment_name: "distilled_T5"
   seed: 42
 
 teacher:
