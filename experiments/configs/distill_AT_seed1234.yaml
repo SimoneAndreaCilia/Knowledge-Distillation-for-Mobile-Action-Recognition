@@ -1,0 +1,73 @@
+# =============================================================================
+# Knowledge Distillation — Attention Transfer (AT)
+# =============================================================================
+# This configuration combines Knowledge Distillation (T=10) with Attention
+# Transfer. Attention Transfer forces the Student to align its intermediate
+# feature maps with those of the Teacher ("look exactly where I am looking").
+# This acts as a strong regularizer, combating the extreme overfitting
+# (99% train acc) observed in previous models, with the goal of breaking
+# the 30% validation accuracy barrier.
+#
+# Student width is kept at 1.0 (baseline) as it showed less tendency to
+# overfit than the wider 1.5 variant.
+#
+# Teacher: Kinetics-400 pre-trained 3D ResNet-50 (frozen, ~62.94% on HMDB-51)
+# Student: 3D MobileNet (trainable, w=1.0, ~2.2M params)
+#
+# Usage:
+#   python -m src.training.train_distill --config experiments/configs/distill_AT_seed1234.yaml
+# =============================================================================
+
+experiment:
+  experiment_name: "distilled_AT_T10_seed1234"
+  seed: 1234
+
+teacher:
+  teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
+  teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
+
+student:
+  num_classes: 51
+  width_mult: 1.0
+  dropout: 0.5
+
+distillation:
+  temperature: 10.0
+  alpha: 0.3
+  use_attention_transfer: true
+  at_beta: 1000.0
+  use_hint_learning: false
+  hint_beta: 0.5
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 64
+  num_workers: 4
+
+training:
+  epochs: 100
+  lr: 0.02
+  momentum: 0.9
+  weight_decay: 0.001
+  scheduler: "cosine"
+  warmup_epochs: 10
+  label_smoothing: 0.1
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/distilled_AT_T10_seed1234"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/04_attention_transfer/distilled_AT_T10_seed1234"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0

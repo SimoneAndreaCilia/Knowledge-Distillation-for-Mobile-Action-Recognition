@@ -1,0 +1,68 @@
+# =============================================================================
+# Knowledge Distillation — Attention Transfer (AT) - Intermediate Beta
+# =============================================================================
+# This configuration explores the intermediate space between an extremely
+# aggressive Attention Transfer (beta=1000) and a balanced one (beta=10).
+# 
+# Rationale: 
+#   beta=1000  -> 46.47% Val Acc (Massive regularizer, dominates loss)
+#   beta=10    -> 40.00% Val Acc (Balanced loss, but allows overfitting)
+#   beta=100   -> This run! Let's see if the relationship is monotonic.
+#
+# Usage:
+#   python -m src.training.train_distill --config experiments/configs/distill_AT_beta100.yaml
+# =============================================================================
+
+experiment:
+  experiment_name: "distilled_AT_T10_beta100"
+  seed: 42
+
+teacher:
+  teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
+  teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
+
+student:
+  num_classes: 51
+  width_mult: 1.0
+  dropout: 0.5
+
+distillation:
+  temperature: 10.0
+  alpha: 0.3
+  use_attention_transfer: true
+  at_beta: 100.0                # <-- Valore intermedio (Ablation study)
+  use_hint_learning: false
+  hint_beta: 0.5
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 64
+  num_workers: 4
+
+training:
+  epochs: 100
+  lr: 0.02
+  momentum: 0.9
+  weight_decay: 0.001
+  scheduler: "cosine"
+  warmup_epochs: 10
+  label_smoothing: 0.1
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/distilled_AT_T10_beta100"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/04_attention_transfer/distilled_AT_T10_beta100"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
