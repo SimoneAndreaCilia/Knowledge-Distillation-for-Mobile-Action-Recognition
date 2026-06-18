@@ -1,0 +1,70 @@
+# =============================================================================
+# Knowledge Distillation — Attention Transfer (AT) - Balanced Beta
+# =============================================================================
+# This configuration refines the Attention Transfer experiment by lowering
+# the at_beta weight from 1000.0 to 10.0. 
+# 
+# Rationale: With at_beta=1000, the AT loss was dominating the CE+KD loss 
+# by a factor of ~50x. While it acted as a massive regularizer and broke 
+# the 30% accuracy wall (reaching ~46.5%!), lowering at_beta to 10.0 puts
+# the AT loss on the same order of magnitude as CE and KD (~1.0 to ~2.0).
+# This allows the model to genuinely balance "learning from attention maps" 
+# with "learning the classification task".
+#
+# Usage:
+#   python -m src.training.train_distill --config experiments/configs/distill_AT_beta10.yaml
+# =============================================================================
+
+experiment:
+  experiment_name: "distilled_AT_T10_beta10"
+  seed: 42
+
+teacher:
+  teacher_checkpoint: "./checkpoints/teacher/best_model.pth"
+  teacher_num_classes: 51
+  teacher_pretrained_source: "kinetics"
+
+student:
+  num_classes: 51
+  width_mult: 1.0
+  dropout: 0.5
+
+distillation:
+  temperature: 10.0
+  alpha: 0.3
+  use_attention_transfer: true
+  at_beta: 10.0                 # <-- Abbassato da 1000.0 a 10.0
+  use_hint_learning: false
+  hint_beta: 0.5
+
+data:
+  dataset_type: "video"
+  data_dir: "./data/hmdb51"
+  annotation_dir: "./data/hmdb51_splits"
+  split: 1
+  num_frames: 16
+  frame_size: 112
+  batch_size: 64
+  num_workers: 4
+
+training:
+  epochs: 100
+  lr: 0.02
+  momentum: 0.9
+  weight_decay: 0.001
+  scheduler: "cosine"
+  warmup_epochs: 10
+  label_smoothing: 0.1
+
+checkpoint:
+  checkpoint_dir: "./checkpoints/distilled_AT_T10_beta10"
+  max_keep: 3
+  resume: true
+
+logging:
+  log_dir: "./runs/04_attention_transfer/distilled_AT_T10_beta10"
+  log_interval: 10
+
+cluster:
+  time_limit_hours: 12.0
+  time_buffer_minutes: 15.0
