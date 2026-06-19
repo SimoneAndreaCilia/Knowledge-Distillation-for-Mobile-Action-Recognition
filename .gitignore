@@ -5,7 +5,8 @@ env/
 __pycache__/
 *.pyc
 
-data/
+data/hmdb51/
+data/hmdb51_splits/
 features/
 checkpoints/
 runs/
