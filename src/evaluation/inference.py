@@ -2,7 +2,7 @@
 Script per testare il modello su una singola clip video.
 
 Esempio di utilizzo:
-python -m src.evaluation.inference --video "data/hmdb51/brush_hair/April_09_brush_hair_u_nm_np1_ba_goo_0.avi" --model student --checkpoint "experiments/checkpoints/distilled_AT_T10_seed1234/best_model.pth"
+python -m src.evaluation.inference --video "data/hmdb51/brush_hair/April_09_brush_hair_u_nm_np1_ba_goo_0.avi" --model student --checkpoint "checkpoints/distilled_AT_T10_seed1234/best_model.pth"
 """
 
 import argparse
