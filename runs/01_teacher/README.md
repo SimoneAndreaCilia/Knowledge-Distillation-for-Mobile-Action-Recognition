@@ -1,6 +1,6 @@
 # Teacher Model Training Log - Baseline
 
-This document summarizes the training execution for the teacher model used in the Knowledge Distillation for Mobile Action Recognition project.
+This document summarizes the training execution for the teacher model used in the Knowledge Distillation for Mobile Action Recognition project. This high-capacity model served to establish the upper bound baseline accuracy for the project.
 
 ## Experiment Setup
 
