@@ -1,12 +1,29 @@
 # Knowledge Distillation for Mobile Action Recognition
 
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![PyTorch](https://img.shields.io/badge/PyTorch-red.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+
 ## 👥 Group and Project Information
-- **Group ID**: [G39]
-- **Project ID**: [32]
+- **Group ID**: G39
+- **Project ID**: 32
 
 ## 📝 Project Description
 This repository addresses the high computational cost of video action recognition on mobile devices by compressing a heavy **3D ResNet-50** teacher model into an ultra-lightweight **3D MobileNet** student via **Knowledge Distillation (KD)** on the HMDB-51 dataset. By utilizing logit-matching, temperature ablations, and feature-based attention transfer, the project successfully bridges the student's performance gap while reducing parameter counts by 5–10x. Comprehensive evaluations track the accuracy trade-offs, model size reductions, and inference latency improvements, backed by t-SNE latent space visualizations.
 
+<details>
+<summary><b>📂 Click to expand Directory Structure</b></summary>
+
+```text
+.
+├── data/             # Dataset videos and splits
+├── docs/             # Documentation and presentation files
+├── experiments/      # YAML configuration files
+├── figures/          # Evaluation plots and images
+├── runs/             # TensorBoard logs and experiment READMEs
+└── src/              # Source code (models, losses, training, evaluation)
+```
+</details>
 
 ## 🛠 Technical Reproducibility
 
@@ -25,7 +42,17 @@ conda activate dl-project
 **Dataset:**
 Download the HMDB51 dataset videos from [Hugging Face](https://huggingface.co/datasets/jili5044/hmdb51). Extract the 51 action class folders directly into `data/hmdb51/` and the train/test splits into `data/hmdb51_splits/`.
 
+### Required files
+
+#### Teacher (3D ResNet-50)
+- **`r3d50_K_200ep.pth`** — Kinetics-400 pre-trained weights (Hara et al.)
+  - Download from: https://github.com/kenshohara/3D-ResNets-PyTorch/releases
+  - Size: ~170 MB.
+  - *Note: You must download this manually and place it in your local directory to establish the teacher baseline.*
+
 ### 2. Network Training
+*Note: The experiments in this project were accelerated using an NVIDIA L40S GPU.*
+
 To reproduce the training runs, use the provided configuration files inside `experiments/configs/`.
 
 **Student Baseline Training:**
@@ -48,6 +75,19 @@ python src/evaluation/evaluate_tsne.py
 # Run comprehensive model comparison (Teacher vs Baselines vs Distilled)
 python src/evaluation/comparison.py
 ```
+
+## 🏆 Quantitative Results
+
+The following table summarizes the performance and efficiency trade-offs between the Teacher model and the various Student models on HMDB-51.
+
+| Model | Parameters (M) | Size (MB) | Top-1 Accuracy (%) |
+| :--- | :---: | :---: | :---: |
+| **Teacher (ResNet3D-50)** | 46.30 | ~176.6 | 62.94% |
+| **Student Baseline** | 2.42 | 9.23 | 20.13% |
+| **Student Distilled (KD T=10)** | 2.42 | 9.23 | 29.15% |
+| **Student Distilled + AT** | 2.42 | 9.23 | **47.19%** |
+
+As shown above, the combination of Knowledge Distillation and Attention Transfer allows the student model to bridge the performance gap significantly (improving from 20.13% to 47.19%) while requiring ~19x fewer parameters than the Teacher model.
 
 ## 📊 Latent Space Analysis (t-SNE)
 
@@ -72,3 +112,9 @@ To quantitatively evaluate the visual separation, we fit covariance ellipses to 
 - **Student Baseline**: Shows a high **ø pairwise IoU of 0.32**, numerically validating the severe cluster overlap and confusion observed in the standard plot.
 - **Student Distilled (KD)**: Reduces the overlap to an **ø pairwise IoU of 0.23**, showing a clear quantitative improvement in feature learning over the baseline.
 - **Student Distilled + AT**: Achieves an **ø pairwise IoU of 0.19**, the lowest overlap among the student models. This confirms that Attention Transfer significantly helps the lightweight student architecture learn a more discriminative, teacher-like feature space, reducing class confusion.
+
+## 📚 References
+- **Knowledge Distillation**: Hinton, G., Vinyals, O., & Dean, J. (2015). Distilling the Knowledge in a Neural Network.
+- **Attention Transfer**: Zagoruyko, S., & Komodakis, N. (2016). Paying More Attention to Attention: Improving the Performance of Convolutional Neural Networks via Attention Transfer.
+- **Teacher Weights**: Hara, K., Kataoka, H., & Satoh, Y. (2018). Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?
+- **Dataset**: Kuehne, H., Jhuang, H., Garrote, E., Poggio, T., & Serre, T. (2011). HMDB: A large video database for human motion recognition.
