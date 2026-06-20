@@ -9,7 +9,7 @@ data/hmdb51/
 data/hmdb51_splits/
 features/
 checkpoints/
-runs/
+runs/**/events*
 experiments/logs/
 experiments/checkpoints/
 
