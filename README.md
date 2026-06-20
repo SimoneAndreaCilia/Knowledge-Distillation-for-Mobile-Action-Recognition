@@ -41,6 +41,7 @@ conda activate dl-project
 
 **Dataset:**
 Download the HMDB51 dataset videos from [Hugging Face](https://huggingface.co/datasets/jili5044/hmdb51). Extract the 51 action class folders directly into `data/hmdb51/` and the train/test splits into `data/hmdb51_splits/`.
+*Note: You must download this manually and place it in your local directory.*
 
 ### Required files
 
@@ -54,6 +55,11 @@ Download the HMDB51 dataset videos from [Hugging Face](https://huggingface.co/da
 *Note: The experiments in this project were accelerated using an NVIDIA L40S GPU.*
 
 To reproduce the training runs, use the provided configuration files inside `experiments/configs/`.
+
+**Teacher Baseline Training:**
+```bash
+python src/training/train_baseline.py --config experiments/configs/teacher.yaml
+```
 
 **Student Baseline Training:**
 ```bash
