@@ -19,30 +19,7 @@ from typing import Dict, Optional
 from .settings import get_settings
 
 
-@dataclass(frozen=True)
-class ModelConfig:
-    """Complete configuration descriptor for a single model checkpoint.
-
-    Attributes:
-        name:        Display label used as the registry key and UI dropdown entry.
-        checkpoint:  Absolute path to the ``.pth`` file.
-        model_name:  Architecture name accepted by ``build_model()``
-                     (``"teacher"`` or ``"student"``).
-        width_mult:  Width multiplier for the student network (ignored for teacher).
-        params_m:    Parameter count in millions.
-        accuracy:    Top-1 accuracy on HMDB-51 test set, ``None`` if not measured.
-        size_mb:     Approximate checkpoint size in megabytes.
-        description: One-sentence description of this configuration.
-    """
-
-    name: str
-    checkpoint: Path
-    model_name: str
-    width_mult: float
-    params_m: float
-    accuracy: Optional[float]
-    size_mb: float
-    description: str
+from src.domain.models.model_metadata import ModelMetadata as ModelConfig
 
 
 def _ckpt(relative: str) -> Path:
