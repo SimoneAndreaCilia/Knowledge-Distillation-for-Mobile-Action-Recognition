@@ -21,4 +21,4 @@ dependencies:
       - tqdm
       - opencv-python
       - thop
-      # Add other pip-only packages here
+      - gradio>=6.0

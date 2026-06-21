@@ -7,3 +7,4 @@ tensorboard
 tqdm
 opencv-python
 thop
+gradio>=4.0
