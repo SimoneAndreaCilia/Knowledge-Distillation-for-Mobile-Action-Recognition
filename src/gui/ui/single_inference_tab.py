@@ -1,145 +1,188 @@
 # -*- coding: utf-8 -*-
-"""Single inference tab — Tab 1 layout and event wiring.
+"""Single inference tab — Tab 1 layout and event wiring."""
 
-Responsible only for defining the Gradio component layout and connecting
-the components to the appropriate callback handler methods.  Contains zero
-business logic.
-
-Usage::
-
-    components = build_single_inference_tab(
-        demo, inference_handler, dataset_handler, registry, classes
-    )
-"""
-
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import gradio as gr
 
 from src.gui.callbacks.dataset_callbacks import DatasetCallbackHandler
 from src.gui.callbacks.inference_callbacks import InferenceCallbackHandler
-from src.gui.ui.components import build_video_input_section
+from src.gui.ui.components import VideoInputSection
+from src.i18n.keys import TranslationKey
+from src.i18n.translator import Translator
 from src.repositories.model_registry import ModelRegistry
 
 
-def build_single_inference_tab(
-    demo: gr.Blocks,
-    inference_handler: InferenceCallbackHandler,
-    dataset_handler: DatasetCallbackHandler,
-    registry: ModelRegistry,
-    classes: List[str],
-    default_class: Optional[str],
-) -> None:
-    """Build Tab 1: Single Model Inference.
+class SingleInferenceTab:
+    """Builds Tab 1: Single Model Inference."""
 
-    Constructs the layout and wires all event listeners.  All business
-    logic is delegated to the injected handler objects.
+    def __init__(
+        self,
+        demo: gr.Blocks,
+        inference_handler: InferenceCallbackHandler,
+        dataset_handler: DatasetCallbackHandler,
+        registry: ModelRegistry,
+        classes: List[str],
+        default_class: Optional[str],
+    ) -> None:
+        self.demo = demo
+        self.inference_handler = inference_handler
+        self.dataset_handler = dataset_handler
+        self.registry = registry
+        self.classes = classes
+        self.default_class = default_class
 
-    Args:
-        demo:              The parent ``gr.Blocks`` instance (for ``demo.load``).
-        inference_handler: Handles the classify button click.
-        dataset_handler:   Handles dataset browser and source toggle events.
-        registry:          Provides initial model dropdown choices.
-        classes:           HMDB-51 class list for the class dropdown.
-        default_class:     Pre-selected class name (or None).
-    """
-    with gr.Tab("🔍 Inferenza Singola", id="single"):
-        with gr.Row():
-            # ---- Left: Video Input ----------------------------------------
-            with gr.Column(scale=1):
-                gr.Markdown("### 🎥 Video Input")
+        # Components
+        self.tab: Optional[gr.Tab] = None
+        self.video_md: Optional[gr.Markdown] = None
+        self.video_section: Optional[VideoInputSection] = None
+        self.model_md: Optional[gr.Markdown] = None
+        self.show_advanced: Optional[gr.Checkbox] = None
+        self.model_dropdown: Optional[gr.Dropdown] = None
+        self.classify_btn: Optional[gr.Button] = None
+        self.results_md: Optional[gr.Markdown] = None
+        self.status_output: Optional[gr.Markdown] = None
+        self.results_output: Optional[gr.Label] = None
+        self.model_info: Optional[gr.Textbox] = None
 
-                (
-                    video_source,
-                    upload_section,
-                    uploaded_video,
-                    dataset_section,
-                    dataset_class,
-                    dataset_video,
-                    video_preview,
-                ) = build_video_input_section(classes, default_class)
+    def build(self, lang_state: gr.State) -> None:
+        """Constructs the layout and wires events."""
+        with gr.Tab(id="single") as self.tab:
+            with gr.Row():
+                # ---- Left: Video Input ----------------------------------------
+                with gr.Column(scale=1):
+                    self.video_md = gr.Markdown()
+                    self.video_section = VideoInputSection(self.classes, self.default_class)
+                    self.video_section.build()
 
-            # ---- Right: Model + Results ------------------------------------
-            with gr.Column(scale=1):
-                gr.Markdown("### 🧠 Modello")
+                # ---- Right: Model + Results ------------------------------------
+                with gr.Column(scale=1):
+                    self.model_md = gr.Markdown()
 
-                show_advanced = gr.Checkbox(
-                    label="📦 Mostra tutte le varianti (ablation)",
-                    value=False,
-                    interactive=True,
-                )
+                    self.show_advanced = gr.Checkbox(
+                        value=False,
+                        interactive=True,
+                    )
 
-                model_dropdown = gr.Dropdown(
-                    label="Seleziona Modello",
-                    choices=registry.keys(show_advanced=False),
-                    value=registry.keys(show_advanced=False)[0],
-                    interactive=True,
-                    allow_custom_value=False,
-                )
+                    self.model_dropdown = gr.Dropdown(
+                        choices=self.registry.keys(show_advanced=False),
+                        value=self.registry.keys(show_advanced=False)[0],
+                        interactive=True,
+                        allow_custom_value=False,
+                    )
 
-                classify_btn = gr.Button(
-                    "🔍 Classifica",
-                    variant="primary",
-                    elem_classes="primary-btn",
-                )
+                    self.classify_btn = gr.Button(
+                        variant="primary",
+                        elem_classes="primary-btn",
+                    )
 
-                gr.Markdown("### 📊 Risultati")
+                    self.results_md = gr.Markdown()
 
-                status_output = gr.Markdown(
-                    value="*In attesa di classificazione...*",
-                    elem_classes="status-msg",
-                )
-                results_output = gr.Label(
-                    label="Top-5 Predizioni",
-                    num_top_classes=5,
-                )
-                model_info = gr.Textbox(
-                    label="ℹ️ Informazioni Modello",
-                    interactive=False,
-                    lines=5,
-                    elem_classes="model-info-box",
-                )
+                    self.status_output = gr.Markdown(
+                        elem_classes="status-msg",
+                    )
+                    
+                    self.results_output = gr.Label(
+                        num_top_classes=5,
+                    )
+                    
+                    self.model_info = gr.Textbox(
+                        interactive=False,
+                        lines=5,
+                        elem_classes="model-info-box",
+                    )
 
-        # ---- Event Wiring -------------------------------------------------
+            # ---- Event Wiring -------------------------------------------------
+            self.video_section.video_source.change(
+                fn=self.dataset_handler.toggle_video_source,
+                inputs=[self.video_section.video_source],
+                outputs=[self.video_section.upload_section, self.video_section.dataset_section],
+            )
 
-        video_source.change(
-            fn=dataset_handler.toggle_video_source,
-            inputs=[video_source],
-            outputs=[upload_section, dataset_section],
-        )
+            self.video_section.dataset_class.change(
+                fn=self.dataset_handler.update_videos,
+                inputs=[self.video_section.dataset_class],
+                outputs=[self.video_section.dataset_video],
+            )
 
-        dataset_class.change(
-            fn=dataset_handler.update_videos,
-            inputs=[dataset_class],
-            outputs=[dataset_video],
-        )
+            self.video_section.dataset_video.change(
+                fn=self.dataset_handler.get_preview_path,
+                inputs=[self.video_section.dataset_class, self.video_section.dataset_video],
+                outputs=[self.video_section.video_preview],
+            )
 
-        dataset_video.change(
-            fn=dataset_handler.get_preview_path,
-            inputs=[dataset_class, dataset_video],
-            outputs=[video_preview],
-        )
+            self.show_advanced.change(
+                fn=self.dataset_handler.update_model_dropdown,
+                inputs=[self.show_advanced],
+                outputs=[self.model_dropdown],
+            )
 
-        show_advanced.change(
-            fn=dataset_handler.update_model_dropdown,
-            inputs=[show_advanced],
-            outputs=[model_dropdown],
-        )
+            self.classify_btn.click(
+                fn=self.inference_handler.classify,
+                inputs=[
+                    self.model_dropdown,
+                    self.video_section.uploaded_video,
+                    self.video_section.dataset_class,
+                    self.video_section.dataset_video,
+                    self.video_section.video_source,
+                    lang_state,
+                ],
+                outputs=[self.results_output, self.model_info, self.status_output],
+            )
 
-        classify_btn.click(
-            fn=inference_handler.classify,
-            inputs=[
-                model_dropdown,
-                uploaded_video,
-                dataset_class,
-                dataset_video,
-                video_source,
-            ],
-            outputs=[results_output, model_info, status_output],
-        )
+            self.demo.load(
+                fn=self.dataset_handler.update_videos,
+                inputs=[self.video_section.dataset_class],
+                outputs=[self.video_section.dataset_video],
+            )
 
-        demo.load(
-            fn=dataset_handler.update_videos,
-            inputs=[dataset_class],
-            outputs=[dataset_video],
-        )
+    def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
+        """Returns updater functions for this section."""
+        updates = self.video_section.get_language_updates(translator)
+
+        def update_tab(lang):
+            return gr.update(label=translator.t(TranslationKey.TAB_SINGLE_INFERENCE, lang=lang))
+
+        def update_video_md(lang):
+            return gr.update(value=translator.t(TranslationKey.VIDEO_INPUT_TITLE, lang=lang))
+
+        def update_model_md(lang):
+            return gr.update(value=translator.t(TranslationKey.MODEL_TITLE, lang=lang))
+
+        def update_show_advanced(lang):
+            return gr.update(label=translator.t(TranslationKey.MODEL_SHOW_ADVANCED, lang=lang))
+
+        def update_model_dropdown(lang):
+            return gr.update(label=translator.t(TranslationKey.MODEL_SELECT, lang=lang))
+
+        def update_classify_btn(lang):
+            return gr.update(value=translator.t(TranslationKey.MODEL_CLASSIFY_BTN, lang=lang))
+
+        def update_results_md(lang):
+            return gr.update(value=translator.t(TranslationKey.RESULTS_TITLE, lang=lang))
+
+        def update_status_output(lang):
+            # Do not overwrite dynamic text if it's already running, but we can set placeholder
+            # Actually, we should just update the placeholder if we can, or just update value if it is the waiting msg.
+            # But Gradio status might be overwritten. We will just return the wait message for now.
+            return gr.update(value=translator.t(TranslationKey.RESULTS_STATUS_WAITING, lang=lang))
+
+        def update_results_output(lang):
+            return gr.update(label=translator.t(TranslationKey.RESULTS_TOP5, lang=lang))
+
+        def update_model_info(lang):
+            return gr.update(label=translator.t(TranslationKey.RESULTS_MODEL_INFO, lang=lang))
+
+        updates.update({
+            self.tab: update_tab,
+            self.video_md: update_video_md,
+            self.model_md: update_model_md,
+            self.show_advanced: update_show_advanced,
+            self.model_dropdown: update_model_dropdown,
+            self.classify_btn: update_classify_btn,
+            self.results_md: update_results_md,
+            self.status_output: update_status_output,
+            self.results_output: update_results_output,
+            self.model_info: update_model_info,
+        })
+        return updates

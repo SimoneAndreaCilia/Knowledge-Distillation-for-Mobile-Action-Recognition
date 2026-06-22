@@ -1,0 +1,80 @@
+{
+  "header": {
+    "title": "🎬 Knowledge Distillation — Action Recognition",
+    "subtitle": "Compare Teacher, Student, and Distilled models on HMDB-51 videos in real-time",
+    "language": "🌐 Language"
+  },
+  "tabs": {
+    "single_inference": "🔍 Single Inference",
+    "comparison": "⚔️ Model Comparison"
+  },
+  "video_input": {
+    "section_title": "### 🎥 Video Input",
+    "source_label": "Video Source",
+    "source_upload": "📤 Upload",
+    "source_dataset": "📂 HMDB-51 Dataset",
+    "upload_label": "Upload a video",
+    "class_label": "Action Class",
+    "video_label": "Video",
+    "preview_label": "Preview"
+  },
+  "model": {
+    "section_title": "### 🧠 Model",
+    "show_advanced": "📦 Show all variants (ablation)",
+    "select_model": "Select Model",
+    "classify_btn": "🔍 Classify",
+    "compare_btn": "⚔️ Compare All Models"
+  },
+  "results": {
+    "section_title": "### 📊 Results",
+    "status_waiting": "*Waiting for classification...*",
+    "top5_label": "Top-5 Predictions",
+    "model_info_label": "ℹ️ Model Information"
+  },
+  "comparison": {
+    "description": "### Compare all models on the same video\nRuns inference with all selected models and shows results side-by-side.",
+    "plot_label": "Top-1 Confidence Comparison",
+    "status_waiting": "*Waiting for comparison...*",
+    "summary_title": "## 📊 Comparison Results\n",
+    "ground_truth": "**Ground Truth:** `{truth}`\n",
+    "unknown_error": "Unknown error",
+    "no_prediction": "No prediction."
+  },
+  "footer": {
+    "text": "<div style='text-align:center; color:#666; padding:20px 0; font-size:0.85rem;'>Knowledge Distillation for Mobile Action Recognition  ·  Device: <code>{device}</code>  ·  Dataset: HMDB-51 ({num_classes} classes)</div>"
+  },
+  "errors": {
+    "upload_video": "Please upload a video before proceeding.",
+    "no_videos_in_class": "No videos found in the selected class.",
+    "no_preview": "Select a video to view the preview.",
+    "inference_failed": "Error during inference: {error}"
+  },
+  "info": {
+    "inference_success": "Inference completed for model {model_name} in {time:.2f}s",
+    "comparison_success": "Comparison completed among {num_models} models",
+    "params": "⚙️ Parameters: {params}M",
+    "size": "💾 Size: {size} MB",
+    "accuracy_test": "📊 Test set accuracy: {accuracy}%",
+    "inference_time": "⏱️ Inference time: {time:.2f}s"
+  },
+  "status": {
+    "loading": "⏳ Loading model: {model_key}…",
+    "no_prediction": "❌ No prediction available.",
+    "prediction": "✅ Prediction: **{class_name}** ({confidence:.1f}%)",
+    "correct": "  ·  🎯 Correct! (ground truth: {truth})",
+    "incorrect": "  ·  ❌ Incorrect (ground truth: {truth})"
+  },
+  "models": {
+    "teacher_desc": "3D ResNet-50 fine-tuned from Kinetics-400 weights. Upper-bound reference for the KD pipeline.",
+    "student_desc": "3D MobileNet trained from scratch on HMDB-51. Lower-bound baseline without any knowledge transfer.",
+    "student_distilled_t10_desc": "3D MobileNet distilled with logit-matching KD at T=10. Soft targets transfer 'dark knowledge' from the Teacher.",
+    "student_at_desc": "3D MobileNet with KD (T=10) + Attention Transfer (β=1000). Best student model — bridges 68% of the Teacher-Baseline gap.",
+    "student_kd_t1": "KD with T=1 (hard targets only, equivalent to label smoothing).",
+    "student_kd_t5": "KD with T=5 (moderately softened distributions).",
+    "student_kd_t20": "KD with T=20 (highly softened, near-uniform distributions).",
+    "student_at_seed42": "KD + AT (β=1000) with seed 42 (original run).",
+    "student_at_beta10": "KD + AT with reduced β=10 (balanced loss weighting).",
+    "student_at_beta100": "KD + AT with intermediate β=100 (ablation).",
+    "student_kd_t10_w1_5": "Wider student (α=1.5, ~4.7M params) with KD T=10. ~7× compression vs Teacher."
+  }
+}

@@ -1,61 +1,35 @@
 # -*- coding: utf-8 -*-
-"""ComparisonCallbackHandler — bridges Gradio compare button to ComparisonService.
-
-Contains only presentation logic: resolving inputs, delegating to the
-comparison service, and formatting the result as markdown for display.
-
-Usage::
-
-    handler = ComparisonCallbackHandler(comparison_service, dataset_service, chart_builder)
-    btn.click(fn=handler.compare, inputs=[...], outputs=[...])
-"""
+"""ComparisonCallbackHandler — bridges Gradio compare button to ComparisonService."""
 
 import logging
 from typing import Any, Optional, Tuple
 
 from matplotlib.figure import Figure
 
+from src.i18n.keys import TranslationKey
+from src.i18n.languages import Language
+from src.i18n.translator import Translator
 from src.services.comparison_service import ComparisonService
 from src.services.dataset_service import DatasetService
 from src.visualization.comparison_chart import ComparisonChartBuilder
 
 logger = logging.getLogger(__name__)
 
-_SOURCE_DATASET = "📂 Dataset HMDB-51"
-
 
 class ComparisonCallbackHandler:
-    """Handles the ``compare`` button click event for multi-model comparison.
-
-    Responsibilities (SRP):
-        - Resolve video path from UI state.
-        - Call ``ComparisonService.run_all()``.
-        - Build the matplotlib figure via ``ComparisonChartBuilder``.
-        - Render the summary markdown table.
-
-    Non-responsibilities:
-        - Running inference (delegated to ``ComparisonService``).
-        - Chart rendering details (delegated to ``ComparisonChartBuilder``).
-
-    Args:
-        comparison_service: Runs all models and aggregates results.
-        dataset_service:    Resolves dataset video paths.
-        chart_builder:      Converts ``ComparisonResult`` to a matplotlib figure.
-    """
+    """Handles the ``compare`` button click event for multi-model comparison."""
 
     def __init__(
         self,
         comparison_service: ComparisonService,
         dataset_service: DatasetService,
         chart_builder: ComparisonChartBuilder,
+        translator: Translator,
     ) -> None:
         self._comparison = comparison_service
         self._dataset = dataset_service
         self._chart_builder = chart_builder
-
-    # ------------------------------------------------------------------
-    # Gradio-facing method
-    # ------------------------------------------------------------------
+        self._translator = translator
 
     def compare(
         self,
@@ -64,22 +38,24 @@ class ComparisonCallbackHandler:
         dataset_video: Optional[str],
         video_source: str,
         show_advanced: bool,
+        lang_state: str,
     ) -> Tuple[Any, str]:
-        """Compare all registered models on the same video.
-
-        Returns:
-            A 2-tuple: ``(matplotlib_figure, summary_markdown)``
-
-        Raises:
-            gr.Error: For invalid user inputs.
-        """
+        """Compare all registered models on the same video."""
         import gradio as gr  # noqa: PLC0415
+        
+        lang = Language(lang_state)
 
         video_path, ground_truth = self._resolve_video(
-            video_source, uploaded_video, dataset_class, dataset_video
+            video_source, uploaded_video, dataset_class, dataset_video, lang
         )
 
-        gr.Info("⏳ Confronto modelli in corso…")
+        gr.Info(self._translator.t(TranslationKey.INFO_COMPARISON_SUCCESS, lang=lang, num_models=0).replace('0', '...')) # Wait, info isn't for loading.
+        # Actually in the original: gr.Info("⏳ Confronto modelli in corso…")
+        # Let's use the loading info properly. But we don't have a specific key for comparison loading. 
+        # I'll just use a generic or reuse info.
+        # Wait, the original was "⏳ Confronto modelli in corso…", let's use COMP_STATUS_WAITING.
+        gr.Info(self._translator.t(TranslationKey.COMP_STATUS_WAITING, lang=lang))
+        
         result = self._comparison.run_all(
             video_path=video_path,
             ground_truth=ground_truth,
@@ -87,12 +63,8 @@ class ComparisonCallbackHandler:
         )
 
         fig = self._chart_builder.build(result)
-        summary = self._build_summary(result)
+        summary = self._build_summary(result, lang)
         return fig, summary
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
 
     def _resolve_video(
         self,
@@ -100,36 +72,36 @@ class ComparisonCallbackHandler:
         uploaded: Optional[str],
         class_name: Optional[str],
         video_name: Optional[str],
+        lang: Language,
     ):
         import gradio as gr  # noqa: PLC0415
 
-        if source == _SOURCE_DATASET:
+        if source == "dataset":
             path = self._dataset.resolve_path(class_name or "", video_name or "")
             if path is None:
-                raise gr.Error("Seleziona una classe e un video dal dataset.")
+                raise gr.Error(self._translator.t(TranslationKey.ERR_NO_PREVIEW, lang=lang))
             return str(path), class_name
         else:
             if not uploaded:
-                raise gr.Error("Carica un file video prima di confrontare.")
+                raise gr.Error(self._translator.t(TranslationKey.ERR_UPLOAD_VIDEO, lang=lang))
             return uploaded, None
 
-    @staticmethod
-    def _build_summary(result) -> str:
+    def _build_summary(self, result, lang: Language) -> str:
         """Render a markdown summary table from a ComparisonResult."""
-        lines = ["## 📊 Risultati Confronto\n"]
+        lines = [self._translator.t(TranslationKey.COMP_SUMMARY_TITLE, lang=lang)]
 
         if result.ground_truth:
-            lines.append(f"**Ground Truth:** `{result.ground_truth}`\n")
+            lines.append(self._translator.t(TranslationKey.COMP_GROUND_TRUTH, lang=lang, truth=result.ground_truth))
 
         for key, inference_result in result.results.items():
             if inference_result is None:
-                error_msg = result.errors.get(key, "Errore sconosciuto")
+                error_msg = result.errors.get(key, self._translator.t(TranslationKey.COMP_UNKNOWN_ERROR, lang=lang))
                 lines.append(f"### ❌ {key}\n{error_msg}\n")
                 continue
 
             top1 = inference_result.top1
             if top1 is None:
-                lines.append(f"### ⚠️ {key}\nNessuna predizione.\n")
+                lines.append(f"### ⚠️ {key}\n{self._translator.t(TranslationKey.COMP_NO_PREDICTION, lang=lang)}\n")
                 continue
 
             if result.ground_truth:

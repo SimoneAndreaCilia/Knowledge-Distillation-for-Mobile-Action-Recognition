@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from src.i18n.keys import TranslationKey
 
 @dataclass(frozen=True)
 class ModelMetadata:
@@ -32,20 +33,32 @@ class ModelMetadata:
     params_m: float
     accuracy: Optional[float]
     size_mb: float
-    description: str
+    description_key: TranslationKey
 
     @property
     def checkpoint_exists(self) -> bool:
         """Return True if the checkpoint file is present on disk."""
         return self.checkpoint.exists()
 
-    def format_info(self, elapsed: Optional[float] = None) -> str:
+    def format_info(self, translator: "Translator", lang: "Language", elapsed: Optional[float] = None) -> str:
         """Build a human-readable info string for display in the UI."""
-        lines = [f"📋 {self.description}"]
-        lines.append(f"⚙️ Parametri: {self.params_m}M")
-        lines.append(f"💾 Dimensione: {self.size_mb} MB")
+        from src.i18n.keys import TranslationKey
+        
+        desc = translator.t(self.description_key, lang=lang)
+        lines = [f"📋 {desc}"]
+        
+        params_str = translator.t(TranslationKey.INFO_PARAMS, lang=lang, params=self.params_m)
+        lines.append(params_str)
+        
+        size_str = translator.t(TranslationKey.INFO_SIZE, lang=lang, size=self.size_mb)
+        lines.append(size_str)
+        
         if self.accuracy is not None:
-            lines.append(f"📊 Accuracy test set: {self.accuracy}%")
+            acc_str = translator.t(TranslationKey.INFO_ACCURACY, lang=lang, accuracy=self.accuracy)
+            lines.append(acc_str)
+            
         if elapsed is not None:
-            lines.append(f"⏱️ Tempo inferenza: {elapsed:.2f}s")
+            time_str = translator.t(TranslationKey.INFO_TIME, lang=lang, time=elapsed)
+            lines.append(time_str)
+            
         return "\n".join(lines)

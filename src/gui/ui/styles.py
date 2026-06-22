@@ -106,4 +106,24 @@ CUSTOM_CSS: str = """
     font-weight: 600 !important;
     font-size: 0.95rem !important;
 }
+
+/* ================================================================
+   Language Selector
+   ================================================================ */
+.language-selector {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 10px;
+    margin-right: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.language-selector fieldset {
+    display: flex;
+    justify-content: center;
+}
+.language-selector label {
+    font-weight: bold !important;
+    font-size: 0.85rem !important;
+}
 """

@@ -77,7 +77,7 @@ class DatasetCallbackHandler:
         """
         import gradio as gr  # noqa: PLC0415
 
-        is_dataset = source == _SOURCE_DATASET
+        is_dataset = source == "dataset"
         return (
             gr.update(visible=not is_dataset),  # upload section
             gr.update(visible=is_dataset),       # dataset section

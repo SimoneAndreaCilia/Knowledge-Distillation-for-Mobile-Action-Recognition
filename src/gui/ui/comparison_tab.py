@@ -1,122 +1,152 @@
 # -*- coding: utf-8 -*-
-"""Comparison tab — Tab 2 layout and event wiring.
+"""Comparison tab — Tab 2 layout and event wiring."""
 
-Responsible only for defining the Gradio component layout and connecting
-components to the ComparisonCallbackHandler.  Contains zero business logic.
-
-Usage::
-
-    build_comparison_tab(demo, comparison_handler, dataset_handler, classes, default_class)
-"""
-
-from typing import List, Optional
+from typing import Callable, Dict, List, Optional
 
 import gradio as gr
 
 from src.gui.callbacks.comparison_callbacks import ComparisonCallbackHandler
 from src.gui.callbacks.dataset_callbacks import DatasetCallbackHandler
-from src.gui.ui.components import build_video_input_section
+from src.gui.ui.components import VideoInputSection
+from src.i18n.keys import TranslationKey
+from src.i18n.translator import Translator
 
 
-def build_comparison_tab(
-    demo: gr.Blocks,
-    comparison_handler: ComparisonCallbackHandler,
-    dataset_handler: DatasetCallbackHandler,
-    classes: List[str],
-    default_class: Optional[str],
-) -> None:
-    """Build Tab 2: Multi-Model Comparison.
+class ComparisonTab:
+    """Builds Tab 2: Multi-Model Comparison."""
 
-    Constructs the layout and wires all event listeners for the model
-    comparison tab.  All business logic is delegated to the handler objects.
+    def __init__(
+        self,
+        demo: gr.Blocks,
+        comparison_handler: ComparisonCallbackHandler,
+        dataset_handler: DatasetCallbackHandler,
+        classes: List[str],
+        default_class: Optional[str],
+    ) -> None:
+        self.demo = demo
+        self.comparison_handler = comparison_handler
+        self.dataset_handler = dataset_handler
+        self.classes = classes
+        self.default_class = default_class
 
-    Args:
-        demo:               Parent ``gr.Blocks`` instance (for ``demo.load``).
-        comparison_handler: Handles the compare button click.
-        dataset_handler:    Handles dataset browser events.
-        classes:            HMDB-51 class list for the class dropdown.
-        default_class:      Pre-selected class name (or None).
-    """
-    with gr.Tab("⚔️ Confronto Modelli", id="compare"):
-        gr.Markdown(
-            "### Confronta tutti i modelli sullo stesso video\n"
-            "Esegue l'inferenza con tutti i modelli selezionati e mostra "
-            "i risultati affiancati."
-        )
+        # Components
+        self.tab: Optional[gr.Tab] = None
+        self.desc_md: Optional[gr.Markdown] = None
+        self.video_md: Optional[gr.Markdown] = None
+        self.video_section: Optional[VideoInputSection] = None
+        self.show_advanced: Optional[gr.Checkbox] = None
+        self.compare_btn: Optional[gr.Button] = None
+        self.results_md: Optional[gr.Markdown] = None
+        self.comparison_plot: Optional[gr.Plot] = None
+        self.comparison_summary: Optional[gr.Markdown] = None
 
-        with gr.Row():
-            # ---- Left: Video Input + Controls -----------------------------
-            with gr.Column(scale=1):
-                gr.Markdown("### 🎥 Video Input")
+    def build(self, lang_state: gr.State) -> None:
+        """Constructs the layout and wires events."""
+        with gr.Tab(id="compare") as self.tab:
+            self.desc_md = gr.Markdown()
 
-                (
-                    cmp_video_source,
-                    cmp_upload_section,
-                    cmp_uploaded_video,
-                    cmp_dataset_section,
-                    cmp_dataset_class,
-                    cmp_dataset_video,
-                    cmp_video_preview,
-                ) = build_video_input_section(classes, default_class)
+            with gr.Row():
+                # ---- Left: Video Input + Controls -----------------------------
+                with gr.Column(scale=1):
+                    self.video_md = gr.Markdown()
 
-                cmp_show_advanced = gr.Checkbox(
-                    label="📦 Includi varianti avanzate",
-                    value=False,
-                    interactive=True,
-                )
+                    self.video_section = VideoInputSection(self.classes, self.default_class)
+                    self.video_section.build()
 
-                compare_btn = gr.Button(
-                    "⚔️ Confronta Tutti i Modelli",
-                    variant="primary",
-                    elem_classes="primary-btn",
-                )
+                    self.show_advanced = gr.Checkbox(
+                        value=False,
+                        interactive=True,
+                    )
 
-            # ---- Right: Results -------------------------------------------
-            with gr.Column(scale=2):
-                gr.Markdown("### 📊 Risultati Confronto")
+                    self.compare_btn = gr.Button(
+                        variant="primary",
+                        elem_classes="primary-btn",
+                    )
 
-                comparison_plot = gr.Plot(
-                    label="Confronto Top-1 Confidence",
-                )
-                comparison_summary = gr.Markdown(
-                    value="*In attesa del confronto...*",
-                    elem_classes="comparison-summary",
-                )
+                # ---- Right: Results -------------------------------------------
+                with gr.Column(scale=2):
+                    self.results_md = gr.Markdown()
 
-        # ---- Event Wiring -------------------------------------------------
+                    self.comparison_plot = gr.Plot()
+                    
+                    self.comparison_summary = gr.Markdown(
+                        elem_classes="comparison-summary",
+                    )
 
-        cmp_video_source.change(
-            fn=dataset_handler.toggle_video_source,
-            inputs=[cmp_video_source],
-            outputs=[cmp_upload_section, cmp_dataset_section],
-        )
+            # ---- Event Wiring -------------------------------------------------
+            self.video_section.video_source.change(
+                fn=self.dataset_handler.toggle_video_source,
+                inputs=[self.video_section.video_source],
+                outputs=[self.video_section.upload_section, self.video_section.dataset_section],
+            )
 
-        cmp_dataset_class.change(
-            fn=dataset_handler.update_videos,
-            inputs=[cmp_dataset_class],
-            outputs=[cmp_dataset_video],
-        )
+            self.video_section.dataset_class.change(
+                fn=self.dataset_handler.update_videos,
+                inputs=[self.video_section.dataset_class],
+                outputs=[self.video_section.dataset_video],
+            )
 
-        cmp_dataset_video.change(
-            fn=dataset_handler.get_preview_path,
-            inputs=[cmp_dataset_class, cmp_dataset_video],
-            outputs=[cmp_video_preview],
-        )
+            self.video_section.dataset_video.change(
+                fn=self.dataset_handler.get_preview_path,
+                inputs=[self.video_section.dataset_class, self.video_section.dataset_video],
+                outputs=[self.video_section.video_preview],
+            )
 
-        compare_btn.click(
-            fn=comparison_handler.compare,
-            inputs=[
-                cmp_uploaded_video,
-                cmp_dataset_class,
-                cmp_dataset_video,
-                cmp_video_source,
-                cmp_show_advanced,
-            ],
-            outputs=[comparison_plot, comparison_summary],
-        )
+            self.compare_btn.click(
+                fn=self.comparison_handler.compare,
+                inputs=[
+                    self.video_section.uploaded_video,
+                    self.video_section.dataset_class,
+                    self.video_section.dataset_video,
+                    self.video_section.video_source,
+                    self.show_advanced,
+                    lang_state,
+                ],
+                outputs=[self.comparison_plot, self.comparison_summary],
+            )
 
-        demo.load(
-            fn=dataset_handler.update_videos,
-            inputs=[cmp_dataset_class],
-            outputs=[cmp_dataset_video],
-        )
+            self.demo.load(
+                fn=self.dataset_handler.update_videos,
+                inputs=[self.video_section.dataset_class],
+                outputs=[self.video_section.dataset_video],
+            )
+
+    def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
+        """Returns updater functions for this section."""
+        updates = self.video_section.get_language_updates(translator)
+
+        def update_tab(lang):
+            return gr.update(label=translator.t(TranslationKey.TAB_COMPARISON, lang=lang))
+
+        def update_desc_md(lang):
+            return gr.update(value=translator.t(TranslationKey.COMP_DESC, lang=lang))
+
+        def update_video_md(lang):
+            return gr.update(value=translator.t(TranslationKey.VIDEO_INPUT_TITLE, lang=lang))
+
+        def update_show_advanced(lang):
+            return gr.update(label=translator.t(TranslationKey.MODEL_SHOW_ADVANCED, lang=lang))
+
+        def update_compare_btn(lang):
+            return gr.update(value=translator.t(TranslationKey.MODEL_COMPARE_BTN, lang=lang))
+
+        def update_results_md(lang):
+            return gr.update(value=translator.t(TranslationKey.RESULTS_TITLE, lang=lang))
+
+        def update_comparison_plot(lang):
+            return gr.update(label=translator.t(TranslationKey.COMP_PLOT, lang=lang))
+
+        def update_comparison_summary(lang):
+            return gr.update(value=translator.t(TranslationKey.COMP_STATUS_WAITING, lang=lang))
+
+        updates.update({
+            self.tab: update_tab,
+            self.desc_md: update_desc_md,
+            self.video_md: update_video_md,
+            self.show_advanced: update_show_advanced,
+            self.compare_btn: update_compare_btn,
+            self.results_md: update_results_md,
+            self.comparison_plot: update_comparison_plot,
+            self.comparison_summary: update_comparison_summary,
+        })
+        return updates

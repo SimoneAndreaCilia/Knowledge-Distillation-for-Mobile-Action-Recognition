@@ -1,24 +1,10 @@
 # -*- coding: utf-8 -*-
-"""ApplicationBuilder — the composition root of the Knowledge Distillation demo.
-
-This module is the **only** place in the entire codebase that wires
-dependencies together.  It follows the Dependency Inversion Principle:
-high-level modules (UI, callbacks) declare what they need (interfaces /
-protocols); this builder constructs the concrete implementations and
-injects them.
-
-No other module should instantiate services or repositories directly.
-
-Usage::
-
-    from src.bootstrap.application import ApplicationBuilder
-
-    app = ApplicationBuilder().build()
-    app.launch()
-"""
+"""ApplicationBuilder — the composition root of the Knowledge Distillation demo."""
 
 import logging
 import sys
+from pathlib import Path
+
 import torch
 
 from src.cache.model_cache import ModelCache
@@ -37,23 +23,18 @@ from src.gui.callbacks.inference_callbacks import InferenceCallbackHandler
 from src.gui.callbacks.comparison_callbacks import ComparisonCallbackHandler
 from src.gui.ui.theme import build_theme
 from src.gui.ui.styles import CUSTOM_CSS
-from src.gui.ui.single_inference_tab import build_single_inference_tab
-from src.gui.ui.comparison_tab import build_comparison_tab
+from src.gui.ui.header import Header
+from src.gui.ui.footer import Footer
+from src.gui.ui.single_inference_tab import SingleInferenceTab
+from src.gui.ui.comparison_tab import ComparisonTab
+from src.i18n.translator import Translator
+from src.i18n.languages import Language
 
 logger = logging.getLogger(__name__)
 
 
 class GradioApp:
-    """Thin wrapper around a built ``gr.Blocks`` interface.
-
-    Encapsulates Gradio launch parameters so that ``main.py`` stays minimal.
-
-    Args:
-        demo:   The fully constructed ``gr.Blocks`` instance.
-        theme:  The Gradio theme to apply at launch.
-        css:    Custom CSS string to inject.
-        settings: Application settings (for server host/port).
-    """
+    """Thin wrapper around a built ``gr.Blocks`` interface."""
 
     def __init__(self, demo, theme, css: str, settings) -> None:
         self._demo = demo
@@ -62,10 +43,6 @@ class GradioApp:
         self._settings = settings
 
     def launch(self, **kwargs) -> None:
-        """Launch the Gradio server with the configured settings.
-
-        Any keyword arguments override the defaults from ``AppSettings``.
-        """
         params = {
             "server_name": self._settings.server_name,
             "server_port": self._settings.server_port,
@@ -85,19 +62,7 @@ class GradioApp:
 
 
 class ApplicationBuilder:
-    """Constructs and wires the complete application object graph.
-
-    Call ``build()`` once to get a ``GradioApp`` ready to ``launch()``.
-
-    The build sequence is strictly ordered bottom-up:
-      1. Settings (no deps)
-      2. Repositories (depend on settings/config)
-      3. Cache (no deps)
-      4. Services (depend on repositories + cache)
-      5. Visualization (depends on domain objects only)
-      6. Callbacks (depend on services + visualization)
-      7. UI / Gradio layout (depends on callbacks)
-    """
+    """Constructs and wires the complete application object graph."""
 
     def build(self) -> GradioApp:
         """Build and return the fully wired ``GradioApp``."""
@@ -140,6 +105,10 @@ class ApplicationBuilder:
             inference_service=inference_service,
             registry=registry,
         )
+        
+        # Load I18n Translator
+        i18n_dir = settings.project_root / "src" / "i18n" / "translations"
+        translator = Translator(translations_dir=i18n_dir)
 
         # ---- 5. Visualization --------------------------------------------
         chart_builder = ComparisonChartBuilder()
@@ -149,11 +118,13 @@ class ApplicationBuilder:
             inference_service=inference_service,
             dataset_service=dataset_service,
             registry=registry,
+            translator=translator,
         )
         comparison_handler = ComparisonCallbackHandler(
             comparison_service=comparison_service,
             dataset_service=dataset_service,
             chart_builder=chart_builder,
+            translator=translator,
         )
         dataset_handler = DatasetCallbackHandler(
             dataset_service=dataset_service,
@@ -168,18 +139,15 @@ class ApplicationBuilder:
         import gradio as gr  # noqa: PLC0415
 
         with gr.Blocks(title="KD Action Recognition Demo") as demo:
-
+            lang_state = gr.State(Language.IT.value)
+            
             # Header
-            with gr.Column(elem_classes="header-section"):
-                gr.Markdown(
-                    "# 🎬 Knowledge Distillation — Action Recognition\n"
-                    "Confronta Teacher, Student e modelli Distillati "
-                    "su video HMDB-51 in tempo reale"
-                )
+            header = Header()
+            header.build()
 
             # Tabs
             with gr.Tabs(elem_classes="tabs"):
-                build_single_inference_tab(
+                single_tab = SingleInferenceTab(
                     demo=demo,
                     inference_handler=inference_handler,
                     dataset_handler=dataset_handler,
@@ -187,23 +155,55 @@ class ApplicationBuilder:
                     classes=classes,
                     default_class=default_class,
                 )
-                build_comparison_tab(
+                single_tab.build(lang_state=lang_state)
+
+                comp_tab = ComparisonTab(
                     demo=demo,
                     comparison_handler=comparison_handler,
                     dataset_handler=dataset_handler,
                     classes=classes,
                     default_class=default_class,
                 )
+                comp_tab.build(lang_state=lang_state)
 
             # Footer
-            device_label = "CUDA" if torch.cuda.is_available() else "CPU"
-            gr.Markdown(
-                "<div style='text-align:center; color:#666; padding:20px 0; "
-                "font-size:0.85rem;'>"
-                "Knowledge Distillation for Mobile Action Recognition  ·  "
-                f"Device: <code>{device_label}</code>  ·  "
-                f"Dataset: HMDB-51 ({len(class_names)} classi)"
-                "</div>"
+            footer = Footer(num_classes=len(class_names))
+            footer.build()
+            
+            # Apply translations
+            def update_ui(lang: str):
+                header_updates = header.get_language_updates(translator)
+                single_updates = single_tab.get_language_updates(translator)
+                comp_updates = comp_tab.get_language_updates(translator)
+                footer_updates = footer.get_language_updates(translator)
+                
+                res = []
+                for updates in [header_updates, single_updates, comp_updates, footer_updates]:
+                    for comp, update_func in updates.items():
+                        res.append(update_func(Language(lang)))
+                return tuple(res)
+                
+            ui_components = []
+            for updates in [header.get_language_updates(translator), 
+                            single_tab.get_language_updates(translator), 
+                            comp_tab.get_language_updates(translator), 
+                            footer.get_language_updates(translator)]:
+                ui_components.extend(list(updates.keys()))
+                
+            demo.load(
+                fn=update_ui,
+                inputs=[lang_state],
+                outputs=ui_components,
+            )
+            
+            header.language_selector.change(
+                fn=lambda lang: lang,
+                inputs=[header.language_selector],
+                outputs=[lang_state],
+            ).then(
+                fn=update_ui,
+                inputs=[lang_state],
+                outputs=ui_components,
             )
 
         return GradioApp(

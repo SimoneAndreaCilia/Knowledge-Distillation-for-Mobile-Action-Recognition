@@ -17,9 +17,8 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from .settings import get_settings
-
-
 from src.domain.models.model_metadata import ModelMetadata as ModelConfig
+from src.i18n.keys import TranslationKey
 
 
 def _ckpt(relative: str) -> Path:
@@ -42,10 +41,7 @@ MODELS_MAIN: Dict[str, ModelConfig] = {
             params_m=46.30,
             accuracy=62.94,
             size_mb=176.6,
-            description=(
-                "3D ResNet-50 fine-tuned from Kinetics-400 weights. "
-                "Upper-bound reference for the KD pipeline."
-            ),
+            description_key=TranslationKey.DESC_TEACHER,
         ),
         ModelConfig(
             name="Student Baseline — 20.13%",
@@ -55,10 +51,7 @@ MODELS_MAIN: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=20.13,
             size_mb=9.23,
-            description=(
-                "3D MobileNet trained from scratch on HMDB-51. "
-                "Lower-bound baseline without any knowledge transfer."
-            ),
+            description_key=TranslationKey.DESC_STUDENT,
         ),
         ModelConfig(
             name="Student Distilled (KD T=10) — 29.15%",
@@ -68,10 +61,7 @@ MODELS_MAIN: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=29.15,
             size_mb=9.23,
-            description=(
-                "3D MobileNet distilled with logit-matching KD at T=10. "
-                "Soft targets transfer 'dark knowledge' from the Teacher."
-            ),
+            description_key=TranslationKey.DESC_STUDENT_DISTILLED_T10,
         ),
         ModelConfig(
             name="Student Distilled + AT — 47.19%",
@@ -81,10 +71,7 @@ MODELS_MAIN: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=47.19,
             size_mb=9.23,
-            description=(
-                "3D MobileNet with KD (T=10) + Attention Transfer (β=1000). "
-                "Best student model — bridges 68% of the Teacher-Baseline gap."
-            ),
+            description_key=TranslationKey.DESC_STUDENT_AT,
         ),
     ]
 }
@@ -104,7 +91,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=None,
             size_mb=9.23,
-            description="KD with T=1 (hard targets only, equivalent to label smoothing).",
+            description_key=TranslationKey.DESC_STUDENT_KD_T1,
         ),
         ModelConfig(
             name="Student KD T=5",
@@ -114,7 +101,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=None,
             size_mb=9.23,
-            description="KD with T=5 (moderately softened distributions).",
+            description_key=TranslationKey.DESC_STUDENT_KD_T5,
         ),
         ModelConfig(
             name="Student KD T=20",
@@ -124,7 +111,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=None,
             size_mb=9.23,
-            description="KD with T=20 (highly softened, near-uniform distributions).",
+            description_key=TranslationKey.DESC_STUDENT_KD_T20,
         ),
         ModelConfig(
             name="Student KD + AT (seed 42)",
@@ -134,7 +121,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=None,
             size_mb=9.23,
-            description="KD + AT (β=1000) with seed 42 (original run).",
+            description_key=TranslationKey.DESC_STUDENT_AT_SEED42,
         ),
         ModelConfig(
             name="Student KD + AT (β=10)",
@@ -144,7 +131,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=40.00,
             size_mb=9.23,
-            description="KD + AT with reduced β=10 (balanced loss weighting).",
+            description_key=TranslationKey.DESC_STUDENT_AT_BETA10,
         ),
         ModelConfig(
             name="Student KD + AT (β=100)",
@@ -154,7 +141,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=2.42,
             accuracy=None,
             size_mb=9.23,
-            description="KD + AT with intermediate β=100 (ablation).",
+            description_key=TranslationKey.DESC_STUDENT_AT_BETA100,
         ),
         ModelConfig(
             name="Student KD T=10 (α=1.5)",
@@ -164,10 +151,7 @@ MODELS_ADVANCED: Dict[str, ModelConfig] = {
             params_m=4.70,
             accuracy=None,
             size_mb=40.2,
-            description=(
-                "Wider student (α=1.5, ~4.7M params) with KD T=10. "
-                "~7× compression vs Teacher."
-            ),
+            description_key=TranslationKey.DESC_STUDENT_KD_T10_W1_5,
         ),
     ]
 }
