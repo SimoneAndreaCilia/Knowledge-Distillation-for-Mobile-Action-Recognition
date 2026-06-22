@@ -60,7 +60,7 @@
   "status": {
     "loading": "⏳ Caricamento modello: {model_key}…",
     "no_prediction": "❌ Nessuna predizione disponibile.",
-    "prediction": "✅ Predizione: **{class_name}** ({confidence:.1f}%)",
+    "prediction": "Predizione: **{class_name}** ({confidence:.1f}%)",
     "correct": "  ·  🎯 Corretto! (ground truth: {truth})",
     "incorrect": "  ·  ❌ Errato (ground truth: {truth})"
   },

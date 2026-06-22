@@ -60,7 +60,7 @@
   "status": {
     "loading": "⏳ Loading model: {model_key}…",
     "no_prediction": "❌ No prediction available.",
-    "prediction": "✅ Prediction: **{class_name}** ({confidence:.1f}%)",
+    "prediction": "Prediction: **{class_name}** ({confidence:.1f}%)",
     "correct": "  ·  🎯 Correct! (ground truth: {truth})",
     "incorrect": "  ·  ❌ Incorrect (ground truth: {truth})"
   },
