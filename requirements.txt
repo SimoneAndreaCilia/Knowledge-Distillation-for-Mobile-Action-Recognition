@@ -8,3 +8,5 @@ tqdm
 opencv-python
 thop
 gradio>=4.0
+imageio
+imageio-ffmpeg
