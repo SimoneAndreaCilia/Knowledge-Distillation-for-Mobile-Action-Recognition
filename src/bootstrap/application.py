@@ -17,6 +17,7 @@ from src.services.comparison_service import ComparisonService
 from src.services.dataset_service import DatasetService
 from src.services.inference_service import InferenceService
 from src.services.model_service import ModelService
+from src.services.video_converter import VideoConverter
 from src.visualization.comparison_chart import ComparisonChartBuilder
 from src.gui.callbacks.dataset_callbacks import DatasetCallbackHandler
 from src.gui.callbacks.inference_callbacks import InferenceCallbackHandler
@@ -113,6 +114,9 @@ class ApplicationBuilder:
         # ---- 5. Visualization --------------------------------------------
         chart_builder = ComparisonChartBuilder()
 
+        # Video format converter (AVI → MP4 for browser playback)
+        video_converter = VideoConverter()
+
         # ---- 6. Callback Handlers ----------------------------------------
         inference_handler = InferenceCallbackHandler(
             inference_service=inference_service,
@@ -129,6 +133,7 @@ class ApplicationBuilder:
         dataset_handler = DatasetCallbackHandler(
             dataset_service=dataset_service,
             registry=registry,
+            video_converter=video_converter,
         )
 
         # ---- 7. Gradio UI ------------------------------------------------

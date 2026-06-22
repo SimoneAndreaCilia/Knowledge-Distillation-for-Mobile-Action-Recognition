@@ -18,6 +18,7 @@ from typing import Optional
 
 from src.repositories.model_registry import ModelRegistry
 from src.services.dataset_service import DatasetService
+from src.services.video_converter import VideoConverter
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +40,11 @@ class DatasetCallbackHandler:
         self,
         dataset_service: DatasetService,
         registry: ModelRegistry,
+        video_converter: VideoConverter,
     ) -> None:
         self._dataset = dataset_service
         self._registry = registry
+        self._converter = video_converter
 
     # ------------------------------------------------------------------
     # Gradio-facing methods
@@ -67,7 +70,37 @@ class DatasetCallbackHandler:
             Path string, or None if resolution fails.
         """
         path = self._dataset.resolve_path(class_name or "", video_name or "")
-        return str(path) if path else None
+        if path is None:
+            return None
+        return self._converter.ensure_web_playable(str(path))
+
+    def update_videos_and_preview(self, class_name: Optional[str]):
+        """Return an updated video dropdown AND the preview path for the first video.
+
+        Gradio does not propagate programmatic widget changes as new events, so
+        updating the ``dataset_video`` dropdown from ``update_videos`` never
+        triggers the ``dataset_video.change`` event that feeds ``video_preview``.
+        This method solves that by resolving both in one shot.
+
+        Returns:
+            A 2-tuple:
+            - ``gr.update`` dict for the video ``gr.Dropdown``.
+            - Path string (or ``None``) for the ``gr.Video`` preview player.
+        """
+        import gradio as gr  # noqa: PLC0415
+
+        videos = self._dataset.get_videos(class_name or "")
+        first_video = videos[0] if videos else None
+        preview_path = self._dataset.resolve_path(class_name or "", first_video or "")
+        preview_str = (
+            self._converter.ensure_web_playable(str(preview_path))
+            if preview_path
+            else None
+        )
+        return (
+            gr.update(choices=videos, value=first_video),
+            preview_str,
+        )
 
     def toggle_video_source(self, source: str):
         """Toggle visibility between upload section and dataset browser.

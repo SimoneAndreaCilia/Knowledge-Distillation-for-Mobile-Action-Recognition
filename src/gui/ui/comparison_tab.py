@@ -81,9 +81,9 @@ class ComparisonTab:
             )
 
             self.video_section.dataset_class.change(
-                fn=self.dataset_handler.update_videos,
+                fn=self.dataset_handler.update_videos_and_preview,
                 inputs=[self.video_section.dataset_class],
-                outputs=[self.video_section.dataset_video],
+                outputs=[self.video_section.dataset_video, self.video_section.video_preview],
             )
 
             self.video_section.dataset_video.change(
@@ -106,9 +106,9 @@ class ComparisonTab:
             )
 
             self.demo.load(
-                fn=self.dataset_handler.update_videos,
+                fn=self.dataset_handler.update_videos_and_preview,
                 inputs=[self.video_section.dataset_class],
-                outputs=[self.video_section.dataset_video],
+                outputs=[self.video_section.dataset_video, self.video_section.video_preview],
             )
 
     def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
