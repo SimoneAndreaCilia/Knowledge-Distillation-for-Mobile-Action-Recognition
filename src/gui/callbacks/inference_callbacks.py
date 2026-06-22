@@ -1,65 +1,33 @@
 # -*- coding: utf-8 -*-
-"""InferenceCallbackHandler — bridges Gradio events to InferenceService.
-
-This handler contains **zero business logic**.  Its only job is to:
-  1. Validate UI inputs and raise ``gr.Error`` for bad state.
-  2. Delegate to the service layer.
-  3. Format the service output for Gradio components.
-
-The formatting code here (building markdown strings, icon selection) is
-*presentation logic*, not *business logic* — it belongs in this layer.
-
-Usage::
-
-    handler = InferenceCallbackHandler(inference_service, dataset_service, registry)
-    # Wire in build_ui():
-    btn.click(fn=handler.classify, inputs=[...], outputs=[...])
-"""
+"""InferenceCallbackHandler — bridges Gradio events to InferenceService."""
 
 import logging
 from typing import Optional, Tuple
 
+from src.i18n.keys import TranslationKey
+from src.i18n.languages import Language
+from src.i18n.translator import Translator
 from src.repositories.model_registry import ModelRegistry
 from src.services.dataset_service import DatasetService
 from src.services.inference_service import InferenceService
 
 logger = logging.getLogger(__name__)
 
-_SOURCE_DATASET = "📂 Dataset HMDB-51"
-
 
 class InferenceCallbackHandler:
-    """Handles the ``classify`` button click event for single-model inference.
-
-    Responsibilities (SRP):
-        - Resolve video path from UI state (upload vs. dataset selection).
-        - Call ``InferenceService.run()``.
-        - Format the ``InferenceResult`` into the 3-tuple expected by Gradio:
-          ``(label_dict, model_info_str, status_markdown)``.
-
-    Non-responsibilities:
-        - Running inference (delegated to ``InferenceService``).
-        - Loading models (delegated to ``ModelService`` via ``InferenceService``).
-
-    Args:
-        inference_service: Executes the ML inference pass.
-        dataset_service:   Resolves dataset video paths.
-        registry:          Provides ``ModelMetadata`` for info display.
-    """
+    """Handles the ``classify`` button click event for single-model inference."""
 
     def __init__(
         self,
         inference_service: InferenceService,
         dataset_service: DatasetService,
         registry: ModelRegistry,
+        translator: Translator,
     ) -> None:
         self._inference = inference_service
         self._dataset = dataset_service
         self._registry = registry
-
-    # ------------------------------------------------------------------
-    # Gradio-facing method
-    # ------------------------------------------------------------------
+        self._translator = translator
 
     def classify(
         self,
@@ -68,32 +36,23 @@ class InferenceCallbackHandler:
         dataset_class: Optional[str],
         dataset_video: Optional[str],
         video_source: str,
+        lang_state: str,
     ) -> Tuple[dict, str, str]:
-        """Classify a video with the selected model.
-
-        This method is passed directly to ``gr.Button.click(fn=...)``.
-
-        Returns:
-            A 3-tuple: ``(label_dict, model_info_text, status_markdown)``
-              - ``label_dict``       → fed to ``gr.Label``
-              - ``model_info_text``  → fed to ``gr.Textbox``
-              - ``status_markdown``  → fed to ``gr.Markdown``
-
-        Raises:
-            gr.Error: For invalid user inputs (no model, no video).
-        """
-        import gradio as gr  # noqa: PLC0415 — lazy import keeps module testable
+        """Classify a video with the selected model."""
+        import gradio as gr  # noqa: PLC0415
+        
+        lang = Language(lang_state)
 
         # ---- Input validation ----
         if not model_key:
-            raise gr.Error("Seleziona un modello prima di classificare.")
+            raise gr.Error(self._translator.t("model.select_model", lang=lang))
 
         video_path, ground_truth = self._resolve_video(
-            video_source, uploaded_video, dataset_class, dataset_video
+            video_source, uploaded_video, dataset_class, dataset_video, lang
         )
 
         # ---- Delegate to service ----
-        gr.Info(f"⏳ Caricamento modello: {model_key}…")
+        gr.Info(self._translator.t(TranslationKey.STATUS_LOADING, lang=lang, model_key=model_key))
         try:
             result = self._inference.run(
                 video_path=video_path,
@@ -106,17 +65,13 @@ class InferenceCallbackHandler:
         # ---- Format output ----
         config = self._registry.find(model_key)
         model_info = (
-            config.format_info(elapsed=result.elapsed_seconds)
+            config.format_info(translator=self._translator, lang=lang, elapsed=result.elapsed_seconds)
             if config
-            else f"⏱️ Tempo inferenza: {result.elapsed_seconds:.2f}s"
+            else self._translator.t(TranslationKey.INFO_TIME, lang=lang, time=result.elapsed_seconds)
         )
 
-        status = self._build_status(result)
+        status = self._build_status(result, lang)
         return result.as_label_dict(), model_info, status
-
-    # ------------------------------------------------------------------
-    # Private helpers
-    # ------------------------------------------------------------------
 
     def _resolve_video(
         self,
@@ -124,33 +79,38 @@ class InferenceCallbackHandler:
         uploaded: Optional[str],
         class_name: Optional[str],
         video_name: Optional[str],
+        lang: Language,
     ):
         """Return (video_path_str, ground_truth) from the active video source."""
         import gradio as gr  # noqa: PLC0415
 
-        if source == _SOURCE_DATASET:
+        if source == "dataset":
             path = self._dataset.resolve_path(class_name or "", video_name or "")
             if path is None:
-                raise gr.Error("Seleziona una classe e un video dal dataset.")
+                raise gr.Error(self._translator.t(TranslationKey.ERR_NO_PREVIEW, lang=lang))
             return str(path), class_name
         else:
             if not uploaded:
-                raise gr.Error("Carica un file video prima di classificare.")
+                raise gr.Error(self._translator.t(TranslationKey.ERR_UPLOAD_VIDEO, lang=lang))
             return uploaded, None
 
-    @staticmethod
-    def _build_status(result) -> str:
+    def _build_status(self, result, lang: Language) -> str:
         """Build the status markdown string from an InferenceResult."""
         top1 = result.top1
         if top1 is None:
-            return "❌ Nessuna predizione disponibile."
+            return self._translator.t(TranslationKey.STATUS_NO_PRED, lang=lang)
 
-        status = f"✅ Predizione: **{top1.class_name}** ({top1.confidence_pct:.1f}%)"
+        status = self._translator.t(
+            TranslationKey.STATUS_PRED, 
+            lang=lang, 
+            class_name=top1.class_name, 
+            confidence=top1.confidence_pct
+        )
 
         if result.ground_truth:
             if result.is_correct:
-                status += f"  ·  🎯 Corretto! (ground truth: {result.ground_truth})"
+                status += self._translator.t(TranslationKey.STATUS_CORRECT, lang=lang, truth=result.ground_truth)
             else:
-                status += f"  ·  ❌ Errato (ground truth: {result.ground_truth})"
+                status += self._translator.t(TranslationKey.STATUS_INCORRECT, lang=lang, truth=result.ground_truth)
 
         return status
