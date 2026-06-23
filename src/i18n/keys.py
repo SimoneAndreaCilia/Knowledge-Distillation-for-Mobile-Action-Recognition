@@ -23,8 +23,15 @@ class TranslationKey(str, Enum):
     VIDEO_INPUT_DATASET_CHOICE = "video_input.source_dataset"
     VIDEO_INPUT_UPLOAD = "video_input.upload_label"
     VIDEO_INPUT_CLASS = "video_input.class_label"
+    VIDEO_INPUT_SPLIT = "video_input.split_label"
     VIDEO_INPUT_VIDEO = "video_input.video_label"
     VIDEO_INPUT_PREVIEW = "video_input.preview_label"
+    
+    # Dataset Splits
+    DATASET_SPLIT_ALL = "dataset.split_all"
+    DATASET_SPLIT_1 = "dataset.split_1"
+    DATASET_SPLIT_2 = "dataset.split_2"
+    DATASET_SPLIT_3 = "dataset.split_3"
     
     # Model config
     MODEL_TITLE = "model.section_title"

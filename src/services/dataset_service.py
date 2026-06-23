@@ -68,11 +68,14 @@ class DatasetService:
             [d.name for d in self._data_dir.iterdir() if d.is_dir()]
         )
 
-    def get_videos(self, class_name: str) -> List[str]:
-        """Return sorted video filenames for *class_name*.
+    def get_videos(self, class_name: str, split: str = "all") -> List[str]:
+        """Return sorted video filenames for *class_name*, optionally filtered by split.
 
         Args:
             class_name: Name of the action class (must match a sub-directory).
+            split: The split to use ("all", "split1", "split2", "split3"). 
+                   If a split is specified, only videos in the test set (split id 2) 
+                   for that split will be returned.
 
         Returns:
             List of filenames (not full paths) for that class.
@@ -83,11 +86,31 @@ class DatasetService:
         class_dir = self._data_dir / class_name
         if not class_dir.is_dir():
             return []
-        return sorted(
+            
+        videos = sorted(
             f.name
             for f in class_dir.iterdir()
             if f.is_file() and f.suffix.lower() in _VIDEO_EXTENSIONS
         )
+
+        if split != "all":
+            split_num = split.replace("split", "")
+            splits_dir = self._data_dir.parent / "hmdb51_splits"
+            split_file = splits_dir / f"{class_name}_test_split{split_num}.txt"
+            
+            if split_file.is_file():
+                test_videos = set()
+                try:
+                    with open(split_file, "r", encoding="utf-8") as f:
+                        for line in f:
+                            parts = line.strip().split()
+                            if len(parts) >= 2 and parts[1] == "2":
+                                test_videos.add(parts[0])
+                    videos = [v for v in videos if v in test_videos]
+                except Exception as e:
+                    logger.warning("Failed to parse split file %s: %s", split_file, e)
+
+        return videos
 
     def resolve_path(self, class_name: str, video_name: str) -> Optional[Path]:
         """Return the absolute Path for a dataset video, or None.
