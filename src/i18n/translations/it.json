@@ -15,8 +15,15 @@
     "source_dataset": "📂 Dataset HMDB-51",
     "upload_label": "Carica un video",
     "class_label": "Classe Azione",
+    "split_label": "Split Test",
     "video_label": "Video",
     "preview_label": "Anteprima"
+  },
+  "dataset": {
+    "split_all": "Tutti i video",
+    "split_1": "Test Split 1",
+    "split_2": "Test Split 2",
+    "split_3": "Test Split 3"
   },
   "model": {
     "section_title": "### 🧠 Modello",

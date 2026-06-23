@@ -50,7 +50,7 @@ class DatasetCallbackHandler:
     # Gradio-facing methods
     # ------------------------------------------------------------------
 
-    def update_videos(self, class_name: Optional[str]):
+    def update_videos(self, class_name: Optional[str], split: str = "all"):
         """Return an updated video dropdown for the selected *class_name*.
 
         Returns:
@@ -58,7 +58,7 @@ class DatasetCallbackHandler:
         """
         import gradio as gr  # noqa: PLC0415
 
-        videos = self._dataset.get_videos(class_name or "")
+        videos = self._dataset.get_videos(class_name or "", split=split)
         return gr.update(choices=videos, value=videos[0] if videos else None)
 
     def get_preview_path(
@@ -74,7 +74,7 @@ class DatasetCallbackHandler:
             return None
         return self._converter.ensure_web_playable(str(path))
 
-    def update_videos_and_preview(self, class_name: Optional[str]):
+    def update_videos_and_preview(self, class_name: Optional[str], split: str = "all"):
         """Return an updated video dropdown AND the preview path for the first video.
 
         Gradio does not propagate programmatic widget changes as new events, so
@@ -89,7 +89,7 @@ class DatasetCallbackHandler:
         """
         import gradio as gr  # noqa: PLC0415
 
-        videos = self._dataset.get_videos(class_name or "")
+        videos = self._dataset.get_videos(class_name or "", split=split)
         first_video = videos[0] if videos else None
         preview_path = self._dataset.resolve_path(class_name or "", first_video or "")
         preview_str = (

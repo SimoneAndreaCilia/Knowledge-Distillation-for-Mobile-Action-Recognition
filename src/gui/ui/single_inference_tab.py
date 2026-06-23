@@ -101,7 +101,13 @@ class SingleInferenceTab:
 
             self.video_section.dataset_class.change(
                 fn=self.dataset_handler.update_videos_and_preview,
-                inputs=[self.video_section.dataset_class],
+                inputs=[self.video_section.dataset_class, self.video_section.dataset_split],
+                outputs=[self.video_section.dataset_video, self.video_section.video_preview],
+            )
+            
+            self.video_section.dataset_split.change(
+                fn=self.dataset_handler.update_videos_and_preview,
+                inputs=[self.video_section.dataset_class, self.video_section.dataset_split],
                 outputs=[self.video_section.dataset_video, self.video_section.video_preview],
             )
 
@@ -132,7 +138,7 @@ class SingleInferenceTab:
 
             self.demo.load(
                 fn=self.dataset_handler.update_videos_and_preview,
-                inputs=[self.video_section.dataset_class],
+                inputs=[self.video_section.dataset_class, self.video_section.dataset_split],
                 outputs=[self.video_section.dataset_video, self.video_section.video_preview],
             )
 

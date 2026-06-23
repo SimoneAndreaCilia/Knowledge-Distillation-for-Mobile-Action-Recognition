@@ -26,6 +26,7 @@ class VideoInputSection:
         self.uploaded_video: Optional[gr.Video] = None
         self.dataset_section: Optional[gr.Column] = None
         self.dataset_class: Optional[gr.Dropdown] = None
+        self.dataset_split: Optional[gr.Dropdown] = None
         self.dataset_video: Optional[gr.Dropdown] = None
         self.video_preview: Optional[gr.Video] = None
 
@@ -47,6 +48,17 @@ class VideoInputSection:
             self.dataset_class = gr.Dropdown(
                 choices=self.classes,
                 value=self.default_class,
+                interactive=True,
+                allow_custom_value=False,
+            )
+            self.dataset_split = gr.Dropdown(
+                choices=[
+                    ("All Videos", "all"),
+                    ("Test Split 1", "split1"),
+                    ("Test Split 2", "split2"),
+                    ("Test Split 3", "split3")
+                ],
+                value="all",
                 interactive=True,
                 allow_custom_value=False,
             )
@@ -77,6 +89,17 @@ class VideoInputSection:
         def update_dataset_class(lang):
             return gr.update(label=translator.t(TranslationKey.VIDEO_INPUT_CLASS, lang=lang))
 
+        def update_dataset_split(lang):
+            return gr.update(
+                label=translator.t(TranslationKey.VIDEO_INPUT_SPLIT, lang=lang),
+                choices=[
+                    (translator.t(TranslationKey.DATASET_SPLIT_ALL, lang=lang), "all"),
+                    (translator.t(TranslationKey.DATASET_SPLIT_1, lang=lang), "split1"),
+                    (translator.t(TranslationKey.DATASET_SPLIT_2, lang=lang), "split2"),
+                    (translator.t(TranslationKey.DATASET_SPLIT_3, lang=lang), "split3")
+                ]
+            )
+
         def update_dataset_video(lang):
             return gr.update(label=translator.t(TranslationKey.VIDEO_INPUT_VIDEO, lang=lang))
 
@@ -87,6 +110,7 @@ class VideoInputSection:
             self.video_source: update_video_source,
             self.uploaded_video: update_uploaded_video,
             self.dataset_class: update_dataset_class,
+            self.dataset_split: update_dataset_split,
             self.dataset_video: update_dataset_video,
             self.video_preview: update_video_preview,
         }
