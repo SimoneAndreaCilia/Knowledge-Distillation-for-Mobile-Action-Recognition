@@ -2,7 +2,8 @@
   "header": {
     "title": "🎬 Knowledge Distillation — Action Recognition",
     "subtitle": "Teacher vs Student Models on HMDB-51",
-    "language": "🌐 Lingua"
+    "language": "🌐 Lingua",
+    "branding": "**🎓 Università di Catania**<br><span style='color: #718096; font-size: 0.85rem;'>Dipartimento di Matematica e Informatica</span>"
   },
   "tabs": {
     "single_inference": "🔍 Inferenza Singola",
@@ -50,7 +51,7 @@
     "all_incorrect": "(Tutti i modelli sono errati)"
   },
   "footer": {
-    "text": "<div style='text-align:center; color:#666; padding:20px 0; font-size:0.85rem;'>Knowledge Distillation for Mobile Action Recognition  ·  Device: <code>{device}</code>  ·  Dataset: HMDB-51 ({num_classes} classi)</div>"
+    "text": "**Knowledge Distillation for Mobile Action Recognition**<br>Progetto Universitario · Corso di deep learning<br>Dipartimento di Matematica e Informatica · **Università di Catania**<br><span style='color: #A0AEC0; font-size: 0.8rem;'>In esecuzione su {device} · Dataset HMDB-51 ({num_classes} classi)</span>"
   },
   "errors": {
     "upload_video": "Carica un video prima di procedere.",

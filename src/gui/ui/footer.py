@@ -25,11 +25,10 @@ class Footer:
     def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
         """Returns updater functions for this section."""
         def update_footer(lang):
-            html = (
-                "**Knowledge Distillation for Mobile Action Recognition**<br>"
-                "University Project · Deep Learning Course<br>"
-                "Department of Mathematics and Computer Science · **University of Catania**<br>"
-                f"<span style='color: #A0AEC0; font-size: 0.8rem;'>Running on {self.device_label} · HMDB-51 Dataset ({self.num_classes} classes)</span>"
+            template = translator.t(TranslationKey.FOOTER_TEXT, lang=lang)
+            html = template.format(
+                device=self.device_label,
+                num_classes=self.num_classes
             )
             return gr.update(value=html)
 

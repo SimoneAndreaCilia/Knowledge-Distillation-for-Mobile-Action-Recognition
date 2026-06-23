@@ -14,6 +14,7 @@ class Header:
     """Builds the main header and language selector."""
 
     def __init__(self) -> None:
+        self.branding_md: gr.Markdown = None
         self.title_md: gr.Markdown = None
         self.language_selector: gr.Radio = None
 
@@ -22,11 +23,7 @@ class Header:
         with gr.Row(elem_classes="header-section"):
             # Left: Branding
             with gr.Column(scale=1, min_width=250):
-                gr.Markdown(
-                    "**🎓 Università di Catania**<br>"
-                    "<span style='color: #718096; font-size: 0.85rem;'>"
-                    "Department of Mathematics and Computer Science</span>"
-                )
+                self.branding_md = gr.Markdown()
             
             # Center: Title & Subtitle
             with gr.Column(scale=3, min_width=300):
@@ -43,6 +40,9 @@ class Header:
 
     def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
         """Returns updater functions for this section."""
+        def update_branding(lang):
+            return gr.update(value=translator.t(TranslationKey.HEADER_BRANDING, lang=lang))
+
         def update_title(lang):
             title = translator.t(TranslationKey.HEADER_TITLE, lang=lang)
             subtitle = translator.t(TranslationKey.HEADER_SUBTITLE, lang=lang)
@@ -58,6 +58,7 @@ class Header:
             )
 
         return {
+            self.branding_md: update_branding,
             self.title_md: update_title,
             self.language_selector: update_language_selector,
         }
