@@ -49,13 +49,6 @@ class ComparisonCallbackHandler:
             video_source, uploaded_video, dataset_class, dataset_video, lang
         )
 
-        gr.Info(self._translator.t(TranslationKey.INFO_COMPARISON_SUCCESS, lang=lang, num_models=0).replace('0', '...')) # Wait, info isn't for loading.
-        # Actually in the original: gr.Info("⏳ Confronto modelli in corso…")
-        # Let's use the loading info properly. But we don't have a specific key for comparison loading. 
-        # I'll just use a generic or reuse info.
-        # Wait, the original was "⏳ Confronto modelli in corso…", let's use COMP_STATUS_WAITING.
-        gr.Info(self._translator.t(TranslationKey.COMP_STATUS_WAITING, lang=lang))
-        
         result = self._comparison.run_all(
             video_path=video_path,
             ground_truth=ground_truth,

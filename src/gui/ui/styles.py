@@ -179,6 +179,33 @@ body {
 }
 
 /* ================================================================
+   Gradio Toast Notifications (Errors/Info)
+   ================================================================ */
+.toast-wrap {
+    top: auto !important;
+    bottom: 30px !important;
+    right: 30px !important;
+    left: auto !important;
+    z-index: 9999 !important;
+}
+
+.toast-wrap > div {
+    background-color: #FFFFFF !important;
+    color: #1A202C !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    padding: 16px 20px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.9rem !important;
+    font-weight: 500 !important;
+}
+
+.toast-wrap .error {
+    border-left: 4px solid #E53E3E !important;
+}
+
+/* ================================================================
    Footer
    ================================================================ */
 .academic-footer {
