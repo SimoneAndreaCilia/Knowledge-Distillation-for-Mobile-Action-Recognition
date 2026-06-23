@@ -45,33 +45,32 @@ class ComparisonTab:
         with gr.Tab(id="compare") as self.tab:
             self.desc_md = gr.Markdown()
 
-            with gr.Row():
-                # ---- Left: Video Input + Controls -----------------------------
-                with gr.Column(scale=1):
-                    self.video_md = gr.Markdown()
+            with gr.Column(elem_classes="comparison-container"):
+                # ---- Top: Video Input + Controls (Full Width) ------------------
+                self.video_md = gr.Markdown()
 
-                    self.video_section = VideoInputSection(self.classes, self.default_class)
-                    self.video_section.build()
+                self.video_section = VideoInputSection(self.classes, self.default_class)
+                self.video_section.build()
 
+                with gr.Row():
                     self.show_advanced = gr.Checkbox(
                         value=False,
                         interactive=True,
                     )
-
                     self.compare_btn = gr.Button(
                         variant="primary",
                         elem_classes="primary-btn",
                     )
 
-                # ---- Right: Results -------------------------------------------
-                with gr.Column(scale=2):
-                    self.results_md = gr.Markdown()
+                # ---- KPI Row: Stripe-inspired Summary Cards -------------------
+                self.kpi_cards = gr.HTML(elem_classes="kpi-row")
 
-                    self.comparison_plot = gr.Plot()
-                    
-                    self.comparison_summary = gr.Markdown(
-                        elem_classes="comparison-summary",
-                    )
+                # ---- Center: Results & Chart -----------------------------------
+                self.results_md = gr.Markdown()
+                self.comparison_plot = gr.Plot()
+                
+                # ---- Bottom: Best Model Highlight ------------------------------
+                self.best_model_html = gr.HTML()
 
             # ---- Event Wiring -------------------------------------------------
             self.video_section.video_source.change(
@@ -108,7 +107,7 @@ class ComparisonTab:
                     self.show_advanced,
                     lang_state,
                 ],
-                outputs=[self.comparison_plot, self.comparison_summary],
+                outputs=[self.comparison_plot, self.kpi_cards, self.best_model_html],
             )
 
             self.demo.load(
@@ -142,8 +141,8 @@ class ComparisonTab:
         def update_comparison_plot(lang):
             return gr.update(label=translator.t(TranslationKey.COMP_PLOT, lang=lang))
 
-        def update_comparison_summary(lang):
-            return gr.update(value=translator.t(TranslationKey.COMP_STATUS_WAITING, lang=lang))
+        def update_kpi_cards(lang):
+            return gr.update(value=f"<div style='text-align: center; color: #718096;'>{translator.t(TranslationKey.COMP_STATUS_WAITING, lang=lang)}</div>")
 
         updates.update({
             self.tab: update_tab,
@@ -153,6 +152,6 @@ class ComparisonTab:
             self.compare_btn: update_compare_btn,
             self.results_md: update_results_md,
             self.comparison_plot: update_comparison_plot,
-            self.comparison_summary: update_comparison_summary,
+            self.kpi_cards: update_kpi_cards,
         })
         return updates

@@ -52,7 +52,7 @@ class InferenceCallbackHandler:
         )
 
         # ---- Delegate to service ----
-        gr.Info(self._translator.t(TranslationKey.STATUS_LOADING, lang=lang, model_key=model_key))
+        # Status is handled automatically by Gradio's loading indicators now
         try:
             result = self._inference.run(
                 video_path=video_path,

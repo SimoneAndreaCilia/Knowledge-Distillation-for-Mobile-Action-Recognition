@@ -14,14 +14,22 @@ class Header:
     """Builds the main header and language selector."""
 
     def __init__(self) -> None:
+        self.branding_md: gr.Markdown = None
         self.title_md: gr.Markdown = None
         self.language_selector: gr.Radio = None
 
     def build(self) -> None:
         """Constructs the layout."""
         with gr.Row(elem_classes="header-section"):
-            with gr.Column(scale=4):
-                self.title_md = gr.Markdown()
+            # Left: Branding
+            with gr.Column(scale=1, min_width=250):
+                self.branding_md = gr.Markdown()
+            
+            # Center: Title & Subtitle
+            with gr.Column(scale=3, min_width=300):
+                self.title_md = gr.Markdown(elem_classes="text-center")
+                
+            # Right: Language Selector
             with gr.Column(scale=1, min_width=150):
                 self.language_selector = gr.Radio(
                     choices=[], # Set dynamically
@@ -32,6 +40,9 @@ class Header:
 
     def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
         """Returns updater functions for this section."""
+        def update_branding(lang):
+            return gr.update(value=translator.t(TranslationKey.HEADER_BRANDING, lang=lang))
+
         def update_title(lang):
             title = translator.t(TranslationKey.HEADER_TITLE, lang=lang)
             subtitle = translator.t(TranslationKey.HEADER_SUBTITLE, lang=lang)
@@ -47,6 +58,7 @@ class Header:
             )
 
         return {
+            self.branding_md: update_branding,
             self.title_md: update_title,
             self.language_selector: update_language_selector,
         }

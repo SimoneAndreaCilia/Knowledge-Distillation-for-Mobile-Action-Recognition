@@ -49,46 +49,48 @@ class SingleInferenceTab:
         """Constructs the layout and wires events."""
         with gr.Tab(id="single") as self.tab:
             with gr.Row():
-                # ---- Left: Video Input ----------------------------------------
-                with gr.Column(scale=1):
+                # ---- Left: Video Input (45%) ----------------------------------
+                with gr.Column(scale=45):
                     self.video_md = gr.Markdown()
                     self.video_section = VideoInputSection(self.classes, self.default_class)
                     self.video_section.build()
 
-                # ---- Right: Model + Results ------------------------------------
-                with gr.Column(scale=1):
+                # ---- Right: Model + Results (55%) -----------------------------
+                with gr.Column(scale=55):
                     self.model_md = gr.Markdown()
 
-                    self.show_advanced = gr.Checkbox(
-                        value=False,
-                        interactive=True,
-                    )
-
-                    self.model_dropdown = gr.Dropdown(
-                        choices=self.registry.keys(show_advanced=False),
-                        value=self.registry.keys(show_advanced=False)[0],
-                        interactive=True,
-                        allow_custom_value=False,
-                    )
-
-                    self.classify_btn = gr.Button(
-                        variant="primary",
-                        elem_classes="primary-btn",
-                    )
+                    with gr.Row():
+                        self.model_dropdown = gr.Dropdown(
+                            choices=self.registry.keys(show_advanced=False),
+                            value=self.registry.keys(show_advanced=False)[0],
+                            interactive=True,
+                            allow_custom_value=False,
+                            scale=3,
+                        )
+                        self.show_advanced = gr.Checkbox(
+                            value=False,
+                            interactive=True,
+                            scale=1,
+                        )
+                        self.classify_btn = gr.Button(
+                            variant="primary",
+                            elem_classes="primary-btn",
+                            scale=1,
+                        )
 
                     self.results_md = gr.Markdown()
 
-                    self.status_output = gr.Markdown(
-                        elem_classes="status-msg",
-                    )
-                    
-                    self.results_output = gr.Label(
-                        num_top_classes=5,
-                    )
+                    with gr.Column(elem_classes="hero-result-card"):
+                        self.status_output = gr.Markdown(
+                            elem_classes="status-msg",
+                        )
+                        self.results_output = gr.Label(
+                            num_top_classes=5,
+                        )
                     
                     self.model_info = gr.Textbox(
                         interactive=False,
-                        lines=5,
+                        lines=3,
                         elem_classes="model-info-box",
                     )
 

@@ -1,8 +1,9 @@
 {
   "header": {
     "title": "🎬 Knowledge Distillation — Action Recognition",
-    "subtitle": "Confronta Teacher, Student e modelli Distillati su video HMDB-51 in tempo reale",
-    "language": "🌐 Lingua"
+    "subtitle": "Teacher vs Student Models on HMDB-51",
+    "language": "🌐 Lingua",
+    "branding": "**🎓 Università di Catania**<br><span style='color: #718096; font-size: 0.85rem;'>Dipartimento di Matematica e Informatica</span>"
   },
   "tabs": {
     "single_inference": "🔍 Inferenza Singola",
@@ -42,13 +43,15 @@
     "description": "### Confronta tutti i modelli sullo stesso video\nEsegue l'inferenza con tutti i modelli selezionati e mostra i risultati affiancati.",
     "plot_label": "Confronto Top-1 Confidence",
     "status_waiting": "*In attesa del confronto...*",
-    "summary_title": "## 📊 Risultati Confronto\n",
+    "summary_title": "## 📊 Risultati del Confronto\n",
     "ground_truth": "**Ground Truth:** `{truth}`\n",
     "unknown_error": "Errore sconosciuto",
-    "no_prediction": "Nessuna predizione."
+    "no_prediction": "Nessuna predizione.",
+    "best_prediction": "Miglior Predizione",
+    "all_incorrect": "(Tutti i modelli sono errati)"
   },
   "footer": {
-    "text": "<div style='text-align:center; color:#666; padding:20px 0; font-size:0.85rem;'>Knowledge Distillation for Mobile Action Recognition  ·  Device: <code>{device}</code>  ·  Dataset: HMDB-51 ({num_classes} classi)</div>"
+    "text": "**Knowledge Distillation for Mobile Action Recognition**<br>Progetto Universitario · Corso di deep learning<br>Dipartimento di Matematica e Informatica · **Università di Catania**<br><span style='color: #A0AEC0; font-size: 0.8rem;'>In esecuzione su {device} · Dataset HMDB-51 ({num_classes} classi)</span>"
   },
   "errors": {
     "upload_video": "Carica un video prima di procedere.",

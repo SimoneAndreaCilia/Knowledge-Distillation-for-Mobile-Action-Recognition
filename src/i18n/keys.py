@@ -11,6 +11,7 @@ class TranslationKey(str, Enum):
     HEADER_TITLE = "header.title"
     HEADER_SUBTITLE = "header.subtitle"
     HEADER_LANGUAGE = "header.language"
+    HEADER_BRANDING = "header.branding"
     
     # Tabs
     TAB_SINGLE_INFERENCE = "tabs.single_inference"
@@ -82,6 +83,8 @@ class TranslationKey(str, Enum):
     COMP_GROUND_TRUTH = "comparison.ground_truth"
     COMP_UNKNOWN_ERROR = "comparison.unknown_error"
     COMP_NO_PREDICTION = "comparison.no_prediction"
+    COMP_BEST_PREDICTION = "comparison.best_prediction"
+    COMP_ALL_INCORRECT = "comparison.all_incorrect"
     
     # Models Descriptions
     DESC_TEACHER = "models.teacher_desc"

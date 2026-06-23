@@ -45,28 +45,29 @@ class VideoInputSection:
             )
 
         with gr.Column(visible=True) as self.dataset_section:
-            self.dataset_class = gr.Dropdown(
-                choices=self.classes,
-                value=self.default_class,
-                interactive=True,
-                allow_custom_value=False,
-            )
-            self.dataset_split = gr.Dropdown(
-                choices=[
-                    ("All Videos", "all"),
-                    ("Test Split 1", "split1"),
-                    ("Test Split 2", "split2"),
-                    ("Test Split 3", "split3")
-                ],
-                value="all",
-                interactive=True,
-                allow_custom_value=False,
-            )
-            self.dataset_video = gr.Dropdown(
-                choices=[],
-                interactive=True,
-                allow_custom_value=False,
-            )
+            with gr.Row():
+                self.dataset_class = gr.Dropdown(
+                    choices=self.classes,
+                    value=self.default_class,
+                    interactive=True,
+                    allow_custom_value=False,
+                )
+                self.dataset_split = gr.Dropdown(
+                    choices=[
+                        ("All Videos", "all"),
+                        ("Test Split 1", "split1"),
+                        ("Test Split 2", "split2"),
+                        ("Test Split 3", "split3")
+                    ],
+                    value="all",
+                    interactive=True,
+                    allow_custom_value=False,
+                )
+                self.dataset_video = gr.Dropdown(
+                    choices=[],
+                    interactive=True,
+                    allow_custom_value=False,
+                )
             self.video_preview = gr.Video(
                 interactive=False,
                 elem_classes="video-preview",

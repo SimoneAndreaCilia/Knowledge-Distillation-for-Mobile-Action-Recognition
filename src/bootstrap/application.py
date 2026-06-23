@@ -143,7 +143,10 @@ class ApplicationBuilder:
 
         import gradio as gr  # noqa: PLC0415
 
-        with gr.Blocks(title="KD Action Recognition Demo") as demo:
+        with gr.Blocks(
+            title="KD Action Recognition Demo",
+            js="function() { document.body.classList.remove('dark'); document.documentElement.classList.remove('dark'); }"
+        ) as demo:
             lang_state = gr.State(Language.IT.value)
             
             # Header
