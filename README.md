@@ -19,9 +19,22 @@ This repository addresses the high computational cost of video action recognitio
 ├── data/             # Dataset videos and splits
 ├── docs/             # Documentation and presentation files
 ├── experiments/      # YAML configuration files
-├── figures/          # Evaluation plots and images
+├── figures/          # Evaluation plots and GUI screenshots
 ├── runs/             # TensorBoard logs and experiment READMEs
-└── src/              # Source code (models, losses, training, evaluation)
+└── src/              # Source code
+    ├── bootstrap/    # Application bootstrapping and DI setup
+    ├── config/       # Configuration management
+    ├── datasets/     # Dataloaders and video transformations
+    ├── domain/       # Domain entities and interfaces
+    ├── evaluation/   # Testing and metrics computation scripts
+    ├── gui/          # Gradio Web Interface and components
+    ├── i18n/         # Internationalization (i18n) and translations
+    ├── models/       # 3D ResNet and MobileNet architectures
+    ├── repositories/ # Data access layer
+    ├── services/     # Application services (Inference, Comparison, Video Converter)
+    ├── training/     # Training and Knowledge Distillation loops
+    ├── utils/        # Utility and helper functions
+    └── visualization/# Plotting and t-SNE generation scripts
 ```
 </details>
 
@@ -81,6 +94,36 @@ python src/evaluation/evaluate_tsne.py
 # Run comprehensive model comparison (Teacher vs Baselines vs Distilled)
 python src/evaluation/comparison.py
 ```
+
+## 🖥️ Graphical User Interface (Gradio)
+
+To provide an interactive and accessible way to test our models, we have integrated a **Gradio web interface**. Gradio allows for rapid creation of intuitive UIs for machine learning applications directly from Python.
+
+Through this interface, users can easily interact with the project:
+- **Single Inference**: Select videos from the HMDB-51 dataset or upload custom ones to perform action recognition using any of the available models (Teacher, Student Baseline, Student Distilled, etc.). The interface displays the predicted action, Top-5 confidence scores, and detailed model metadata (parameter count, size in MB, and inference latency).
+- **Model Comparison**: Run inference on the same video simultaneously across all selected models. This visualizes a side-by-side comparison of their performance, highlighting how the distilled student models close the gap with the teacher through dynamic confidence bar charts.
+
+To launch the Gradio interface locally, run:
+
+```bash
+python -m src.main
+```
+
+<details>
+<summary><b>🖼️ Click to view Interface Screenshots</b></summary>
+<br>
+
+<p align="center">
+  <b>Single Inference</b><br>
+  <img src="figures/gui_single.png" width="750" alt="Gradio Single Inference" />
+</p>
+
+<p align="center">
+  <b>Model Comparison</b><br>
+  <img src="figures/gui_comparison.png" width="750" alt="Gradio Model Comparison" />
+</p>
+
+</details>
 
 ## 🏆 Quantitative Results
 
