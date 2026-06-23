@@ -162,4 +162,39 @@ class ComparisonCallbackHandler:
         else:
             best_html = ""
 
+        # Build Top-5 Predictions Grid HTML
+        top5_title = self._translator.t(TranslationKey.RESULTS_TOP5, lang=lang)
+        top5_html = f"<div style='margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 24px;'>"
+        top5_html += f"<h4 style='margin: 0 0 16px 0; color: #1A202C; font-size: 1.1rem; font-weight: 600;'>{top5_title}</h4>"
+        top5_html += "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;'>"
+
+        for key, inference_result in result.results.items():
+            if inference_result is None or not inference_result.top_predictions:
+                continue
+                
+            short_name = key.split("—")[0].strip() if "—" in key else key
+            
+            top5_html += f"""
+            <div style='background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02);'>
+                <h5 style='margin: 0 0 12px 0; color: #4A5568; font-size: 0.95rem; font-weight: 600; border-bottom: 1px solid #EDF2F7; padding-bottom: 8px;'>{short_name}</h5>
+            """
+            
+            for pred in inference_result.top_predictions[:5]:
+                is_correct = result.ground_truth and pred.class_name == result.ground_truth
+                text_color = "#00D68F" if is_correct else "#1A202C"
+                font_weight = "600" if is_correct else "400"
+                
+                top5_html += f"""
+                <div style='display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;'>
+                    <span style='color: {text_color}; font-weight: {font_weight};'>{pred.class_name}</span>
+                    <span style='color: #F05A28; font-weight: 600;'>{pred.confidence_pct:.1f}%</span>
+                </div>
+                """
+            top5_html += "</div>"
+            
+        top5_html += "</div></div>"
+        
+        # Combine Best HTML and Top-5 HTML
+        best_html += top5_html
+
         return kpi_html, best_html
