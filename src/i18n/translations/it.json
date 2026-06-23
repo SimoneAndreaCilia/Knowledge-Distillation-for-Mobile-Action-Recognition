@@ -42,10 +42,12 @@
     "description": "### Confronta tutti i modelli sullo stesso video\nEsegue l'inferenza con tutti i modelli selezionati e mostra i risultati affiancati.",
     "plot_label": "Confronto Top-1 Confidence",
     "status_waiting": "*In attesa del confronto...*",
-    "summary_title": "## 📊 Risultati Confronto\n",
+    "summary_title": "## 📊 Risultati del Confronto\n",
     "ground_truth": "**Ground Truth:** `{truth}`\n",
     "unknown_error": "Errore sconosciuto",
-    "no_prediction": "Nessuna predizione."
+    "no_prediction": "Nessuna predizione.",
+    "best_prediction": "Miglior Predizione",
+    "all_incorrect": "(Tutti i modelli sono errati)"
   },
   "footer": {
     "text": "<div style='text-align:center; color:#666; padding:20px 0; font-size:0.85rem;'>Knowledge Distillation for Mobile Action Recognition  ·  Device: <code>{device}</code>  ·  Dataset: HMDB-51 ({num_classes} classi)</div>"

@@ -45,7 +45,9 @@
     "summary_title": "## 📊 Comparison Results\n",
     "ground_truth": "**Ground Truth:** `{truth}`\n",
     "unknown_error": "Unknown error",
-    "no_prediction": "No prediction."
+    "no_prediction": "No prediction.",
+    "best_prediction": "Best Prediction",
+    "all_incorrect": "(All models incorrect)"
   },
   "footer": {
     "text": "<div style='text-align:center; color:#666; padding:20px 0; font-size:0.85rem;'>Knowledge Distillation for Mobile Action Recognition  ·  Device: <code>{device}</code>  ·  Dataset: HMDB-51 ({num_classes} classes)</div>"

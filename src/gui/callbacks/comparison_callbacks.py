@@ -86,9 +86,14 @@ class ComparisonCallbackHandler:
 
         # Build KPI Cards HTML
         kpi_html = "<div style='display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; justify-content: space-between;'>"
+        
         best_model_name = None
         best_conf = -1.0
         best_class = None
+        
+        best_correct_model_name = None
+        best_correct_conf = -1.0
+        best_correct_class = None
 
         for key, inference_result in result.results.items():
             if inference_result is None or inference_result.top1 is None:
@@ -97,10 +102,18 @@ class ComparisonCallbackHandler:
             top1 = inference_result.top1
             conf = top1.confidence_pct
             
+            # Track absolute highest confidence (fallback)
             if conf > best_conf:
                 best_conf = conf
                 best_model_name = key
                 best_class = top1.class_name
+                
+            # Track highest confidence among correct predictions
+            if result.ground_truth and inference_result.is_correct:
+                if conf > best_correct_conf:
+                    best_correct_conf = conf
+                    best_correct_model_name = key
+                    best_correct_class = top1.class_name
 
             # Small short name
             short_name = key.split("—")[0].strip() if "—" in key else key
@@ -118,11 +131,30 @@ class ComparisonCallbackHandler:
             """
         kpi_html += "</div>"
 
+        # Resolve which model to show as "Best"
+        is_best_correct = False
+        if best_correct_model_name:
+            best_model_name = best_correct_model_name
+            best_conf = best_correct_conf
+            best_class = best_correct_class
+            is_best_correct = True
+        elif not result.ground_truth:
+            is_best_correct = True # Assume correct if no ground truth
+
         # Build Best Model HTML
         if best_model_name:
+            if result.ground_truth and not is_best_correct:
+                title = f"⚠️ {self._translator.t(TranslationKey.COMP_ALL_INCORRECT, lang=lang)} ⚠️"
+                icon = ""
+                color = "#FF6B6B"
+            else:
+                title = self._translator.t(TranslationKey.COMP_BEST_PREDICTION, lang=lang)
+                icon = "🏆 "
+                color = "#F05A28"
+
             best_html = f"""
             <div class='best-model-card' style='margin-top: 24px;'>
-                <h3 style='margin: 0; color: #F05A28; font-weight: 700;'>🏆 Best Prediction</h3>
+                <h3 style='margin: 0; color: {color}; font-weight: 700;'>{icon} {title}</h3>
                 <p style='margin: 8px 0 0 0; color: #1A202C; font-size: 1.2rem; font-weight: 600;'>{best_model_name}</p>
                 <p style='margin: 4px 0 0 0; color: #718096;'>Predicted <strong>{best_class}</strong> with <strong>{best_conf:.1f}%</strong> confidence</p>
             </div>
