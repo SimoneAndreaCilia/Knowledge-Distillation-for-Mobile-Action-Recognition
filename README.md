@@ -19,9 +19,22 @@ This repository addresses the high computational cost of video action recognitio
 ├── data/             # Dataset videos and splits
 ├── docs/             # Documentation and presentation files
 ├── experiments/      # YAML configuration files
-├── figures/          # Evaluation plots and images
+├── figures/          # Evaluation plots and GUI screenshots
 ├── runs/             # TensorBoard logs and experiment READMEs
-└── src/              # Source code (models, losses, training, evaluation)
+└── src/              # Source code
+    ├── bootstrap/    # Application bootstrapping and DI setup
+    ├── config/       # Configuration management
+    ├── datasets/     # Dataloaders and video transformations
+    ├── domain/       # Domain entities and interfaces
+    ├── evaluation/   # Testing and metrics computation scripts
+    ├── gui/          # Gradio Web Interface and components
+    ├── i18n/         # Internationalization (i18n) and translations
+    ├── models/       # 3D ResNet and MobileNet architectures
+    ├── repositories/ # Data access layer
+    ├── services/     # Application services (Inference, Comparison, Video Converter)
+    ├── training/     # Training and Knowledge Distillation loops
+    ├── utils/        # Utility and helper functions
+    └── visualization/# Plotting and t-SNE generation scripts
 ```
 </details>
 
