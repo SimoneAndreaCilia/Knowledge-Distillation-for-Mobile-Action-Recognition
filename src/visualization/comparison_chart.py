@@ -31,15 +31,17 @@ matplotlib.use("Agg")  # Non-interactive backend — safe in server environments
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Design tokens — dark theme palette
+# Design tokens — light theme palette
 # ---------------------------------------------------------------------------
-_BG_OUTER = "#16213E"
-_BG_INNER = "#1a1a2e"
-_COLOR_NEUTRAL = "#6C63FF"
-_COLOR_CORRECT = "#00D68F"
-_COLOR_WRONG = "#FF6B6B"
-_COLOR_SPINE = "#444"
-_TEXT_COLOR = "white"
+_BG_OUTER = "#FFFFFF"
+_BG_INNER = "#FFFFFF"
+_COLOR_TEACHER = "#F05A28"
+_COLOR_STUDENT = "#94A3B8"
+_COLOR_KD = "#F59E0B"
+_COLOR_KDAT = "#EA580C"
+_COLOR_DEFAULT = "#CBD5E0"
+_COLOR_SPINE = "#E2E8F0"
+_TEXT_COLOR = "#1A202C"
 
 
 class ComparisonChartBuilder:
@@ -47,8 +49,8 @@ class ComparisonChartBuilder:
 
     Responsibilities (SRP):
         - Accept a ``ComparisonResult`` (pure domain object).
-        - Produce a ``matplotlib.figure.Figure`` with dark-theme styling.
-        - Apply colour coding: green (correct), red (wrong), indigo (unknown).
+        - Produce a ``matplotlib.figure.Figure`` with light-theme styling.
+        - Apply colour coding based on model family (Teacher, Student, KD, KD+AT).
 
     Non-responsibilities:
         - Running inference.
@@ -75,11 +77,11 @@ class ComparisonChartBuilder:
             return self._empty_figure()
 
         model_names, top1_classes, top1_confs = self._extract_data(valid)
-        colors = self._compute_colors(top1_classes, result.ground_truth)
+        colors = self._compute_colors(model_names)
         short_names = self._shorten_names(model_names)
 
         fig, ax = self._create_axes(len(model_names))
-        self._draw_bars(ax, short_names, top1_confs, top1_classes, colors)
+        self._draw_bars(ax, short_names, top1_confs, top1_classes, colors, result.ground_truth)
         self._style_axes(ax, top1_confs, result.ground_truth)
 
         plt.tight_layout()
@@ -103,17 +105,21 @@ class ComparisonChartBuilder:
         ]
         return model_names, top1_classes, top1_confs
 
-    def _compute_colors(
-        self,
-        top1_classes: List[str],
-        ground_truth: Optional[str],
-    ) -> List[str]:
-        if ground_truth is None:
-            return [_COLOR_NEUTRAL] * len(top1_classes)
-        return [
-            _COLOR_CORRECT if cls == ground_truth else _COLOR_WRONG
-            for cls in top1_classes
-        ]
+    def _compute_colors(self, model_names: List[str]) -> List[str]:
+        colors = []
+        for name in model_names:
+            n = name.lower()
+            if "teacher" in n:
+                colors.append(_COLOR_TEACHER)
+            elif "at" in n:
+                colors.append(_COLOR_KDAT)
+            elif "kd" in n or "distilled" in n:
+                colors.append(_COLOR_KD)
+            elif "student" in n:
+                colors.append(_COLOR_STUDENT)
+            else:
+                colors.append(_COLOR_DEFAULT)
+        return colors
 
     @staticmethod
     def _shorten_names(names: List[str]) -> List[str]:
@@ -136,6 +142,7 @@ class ComparisonChartBuilder:
         top1_confs: List[float],
         top1_classes: List[str],
         colors: List[str],
+        ground_truth: Optional[str],
     ) -> None:
         y_pos = np.arange(len(short_names))
         bars = ax.barh(
@@ -149,14 +156,19 @@ class ComparisonChartBuilder:
         )
 
         for bar, conf, cls in zip(bars, top1_confs, top1_classes):
+            # Check correctness if ground truth is available
+            icon = ""
+            if ground_truth:
+                icon = "✅ " if cls == ground_truth else "❌ "
+                
             ax.text(
                 bar.get_width() + 1,
                 bar.get_y() + bar.get_height() / 2,
-                f"{cls}  ({conf:.1f}%)",
+                f"{icon}{cls}  ({conf:.1f}%)",
                 va="center",
                 ha="left",
-                fontsize=10,
-                fontweight="bold",
+                fontsize=11,
+                fontweight="600",
                 color=_TEXT_COLOR,
             )
 
@@ -182,12 +194,11 @@ class ComparisonChartBuilder:
         ax.set_xlim(0, max_conf * 1.35)
         ax.tick_params(axis="x", colors=_TEXT_COLOR)
 
-        for spine in ("top", "right"):
+        for spine in ("top", "right", "left"):
             ax.spines[spine].set_visible(False)
-        for spine in ("bottom", "left"):
-            ax.spines[spine].set_color(_COLOR_SPINE)
+        ax.spines["bottom"].set_color(_COLOR_SPINE)
 
-        ax.grid(axis="x", alpha=0.15, color=_TEXT_COLOR)
+        ax.grid(axis="x", alpha=0.5, color=_COLOR_SPINE, linestyle="--")
 
         title = "Confronto Top-1 Prediction"
         if ground_truth:
@@ -196,19 +207,7 @@ class ComparisonChartBuilder:
             title, fontsize=14, fontweight="bold", color=_TEXT_COLOR, pad=15
         )
 
-        if ground_truth:
-            handles = [
-                mpatches.Patch(color=_COLOR_CORRECT, label="✅ Corretto"),
-                mpatches.Patch(color=_COLOR_WRONG, label="❌ Errato"),
-            ]
-            ax.legend(
-                handles=handles,
-                loc="lower right",
-                fontsize=10,
-                facecolor=_BG_INNER,
-                edgecolor=_COLOR_SPINE,
-                labelcolor=_TEXT_COLOR,
-            )
+        # Removed the Correct/Errato color legend as colors now represent model families.
 
     @staticmethod
     def _empty_figure() -> Figure:

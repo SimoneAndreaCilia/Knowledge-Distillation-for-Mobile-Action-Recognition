@@ -63,8 +63,8 @@ class ComparisonCallbackHandler:
         )
 
         fig = self._chart_builder.build(result)
-        summary = self._build_summary(result, lang)
-        return fig, summary
+        kpi_html, best_html = self._build_summary(result, lang)
+        return fig, kpi_html, best_html
 
     def _resolve_video(
         self,
@@ -86,40 +86,55 @@ class ComparisonCallbackHandler:
                 raise gr.Error(self._translator.t(TranslationKey.ERR_UPLOAD_VIDEO, lang=lang))
             return uploaded, None
 
-    def _build_summary(self, result, lang: Language) -> str:
-        """Render a markdown summary table from a ComparisonResult."""
-        lines = [self._translator.t(TranslationKey.COMP_SUMMARY_TITLE, lang=lang)]
+    def _build_summary(self, result, lang: Language) -> Tuple[str, str]:
+        """Render HTML for KPI Summary Cards and the Best Model highlight."""
+        if not result.successful_results:
+            return "<div style='color: #718096;'>No results available</div>", ""
 
-        if result.ground_truth:
-            lines.append(self._translator.t(TranslationKey.COMP_GROUND_TRUTH, lang=lang, truth=result.ground_truth))
+        # Build KPI Cards HTML
+        kpi_html = "<div style='display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; justify-content: space-between;'>"
+        best_model_name = None
+        best_conf = -1.0
+        best_class = None
 
         for key, inference_result in result.results.items():
-            if inference_result is None:
-                error_msg = result.errors.get(key, self._translator.t(TranslationKey.COMP_UNKNOWN_ERROR, lang=lang))
-                lines.append(f"### ❌ {key}\n{error_msg}\n")
+            if inference_result is None or inference_result.top1 is None:
                 continue
-
+                
             top1 = inference_result.top1
-            if top1 is None:
-                lines.append(f"### ⚠️ {key}\n{self._translator.t(TranslationKey.COMP_NO_PREDICTION, lang=lang)}\n")
-                continue
+            conf = top1.confidence_pct
+            
+            if conf > best_conf:
+                best_conf = conf
+                best_model_name = key
+                best_class = top1.class_name
 
+            # Small short name
+            short_name = key.split("—")[0].strip() if "—" in key else key
+            
+            color = "#1A202C"
             if result.ground_truth:
-                icon = "🎯" if inference_result.is_correct else "❌"
-            else:
-                icon = "🔍"
+                color = "#00D68F" if inference_result.is_correct else "#FF6B6B"
 
-            lines.append(
-                f"### {icon} {key}\n"
-                f"**Top-1:** `{top1.class_name}` ({top1.confidence_pct:.1f}%)\n"
-            )
+            kpi_html += f"""
+            <div class='kpi-card' style='flex: 1; min-width: 150px;'>
+                <div class='kpi-title'>{short_name}</div>
+                <div class='kpi-value' style='color: {color};'>{conf:.1f}%</div>
+                <div style='font-size: 0.8rem; color: #718096;'>{top1.class_name}</div>
+            </div>
+            """
+        kpi_html += "</div>"
 
-            for pred in inference_result.top_predictions:
-                bar_len = int(pred.confidence * 20)
-                bar = "█" * bar_len + "░" * (20 - bar_len)
-                lines.append(
-                    f"  `{bar}` {pred.class_name}: {pred.confidence_pct:.1f}%"
-                )
-            lines.append("")
+        # Build Best Model HTML
+        if best_model_name:
+            best_html = f"""
+            <div class='best-model-card' style='margin-top: 24px;'>
+                <h3 style='margin: 0; color: #F05A28; font-weight: 700;'>🏆 Best Prediction</h3>
+                <p style='margin: 8px 0 0 0; color: #1A202C; font-size: 1.2rem; font-weight: 600;'>{best_model_name}</p>
+                <p style='margin: 4px 0 0 0; color: #718096;'>Predicted <strong>{best_class}</strong> with <strong>{best_conf:.1f}%</strong> confidence</p>
+            </div>
+            """
+        else:
+            best_html = ""
 
-        return "\n".join(lines)
+        return kpi_html, best_html

@@ -1,7 +1,7 @@
 {
   "header": {
-    "title": "🎬 Knowledge Distillation — Action Recognition",
-    "subtitle": "Compare Teacher, Student, and Distilled models on HMDB-51 videos in real-time",
+    "title": "Knowledge Distillation — Action Recognition",
+    "subtitle": "Teacher vs Student Models on HMDB-51",
     "language": "🌐 Language"
   },
   "tabs": {

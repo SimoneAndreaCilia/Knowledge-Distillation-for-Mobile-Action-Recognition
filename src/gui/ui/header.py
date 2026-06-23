@@ -20,8 +20,19 @@ class Header:
     def build(self) -> None:
         """Constructs the layout."""
         with gr.Row(elem_classes="header-section"):
-            with gr.Column(scale=4):
-                self.title_md = gr.Markdown()
+            # Left: Branding
+            with gr.Column(scale=1, min_width=250):
+                gr.Markdown(
+                    "**🎓 Università di Catania**<br>"
+                    "<span style='color: #718096; font-size: 0.85rem;'>"
+                    "Department of Mathematics and Computer Science</span>"
+                )
+            
+            # Center: Title & Subtitle
+            with gr.Column(scale=3, min_width=300):
+                self.title_md = gr.Markdown(elem_classes="text-center")
+                
+            # Right: Language Selector
             with gr.Column(scale=1, min_width=150):
                 self.language_selector = gr.Radio(
                     choices=[], # Set dynamically

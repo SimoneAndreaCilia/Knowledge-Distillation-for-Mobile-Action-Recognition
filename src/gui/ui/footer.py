@@ -20,19 +20,18 @@ class Footer:
 
     def build(self) -> None:
         """Constructs the layout."""
-        self.footer_md = gr.Markdown()
+        self.footer_md = gr.Markdown(elem_classes="academic-footer")
 
     def get_language_updates(self, translator: Translator) -> Dict[gr.components.Component, Callable]:
         """Returns updater functions for this section."""
         def update_footer(lang):
-            return gr.update(
-                value=translator.t(
-                    TranslationKey.FOOTER_TEXT, 
-                    lang=lang, 
-                    device=self.device_label, 
-                    num_classes=self.num_classes
-                )
+            html = (
+                "**Knowledge Distillation for Mobile Action Recognition**<br>"
+                "University Project · Deep Learning Course<br>"
+                "Department of Mathematics and Computer Science · **University of Catania**<br>"
+                f"<span style='color: #A0AEC0; font-size: 0.8rem;'>Running on {self.device_label} · HMDB-51 Dataset ({self.num_classes} classes)</span>"
             )
+            return gr.update(value=html)
 
         return {
             self.footer_md: update_footer,

@@ -10,44 +10,134 @@ Usage::
 
 CUSTOM_CSS: str = """
 /* ================================================================
-   Global Container
+   Global Container & Typography
    ================================================================ */
 .gradio-container {
     max-width: 1400px !important;
     margin: 0 auto;
+    font-family: 'Inter', 'Source Sans Pro', sans-serif !important;
+}
+
+.comparison-container {
+    max-width: 1000px !important;
+    margin: 0 auto;
+}
+
+body {
+    background-color: #F7F8FA !important;
+}
+
+/* Remove default Gradio block borders to reduce visual noise */
+.gradio-container .form {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Section titles */
+.section-title h2, .section-title h3 {
+    color: #1A202C !important;
+    font-weight: 600 !important;
+    border-bottom: 2px solid #E2E8F0 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 16px !important;
 }
 
 /* ================================================================
    Header Section
    ================================================================ */
 .header-section {
-    text-align: center;
-    padding: 20px 0;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    margin-bottom: 24px;
+    background: #FFFFFF;
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 .header-section h1 {
-    font-size: 2rem !important;
-    background: linear-gradient(90deg, #6C63FF, #00D68F);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 4px !important;
+    font-size: 1.5rem !important;
+    color: #1A202C !important;
+    margin: 0 !important;
+    font-weight: 700 !important;
 }
 .header-section p {
-    color: #aaa !important;
-    font-size: 1rem;
+    color: #718096 !important;
+    font-size: 0.9rem;
+    margin: 4px 0 0 0 !important;
 }
 
 /* ================================================================
-   Result Card
+   Result Cards (Clean & Minimal)
    ================================================================ */
-.result-card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 16px;
+.result-card, .best-model-card, .kpi-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Hero Prediction Card */
+.hero-result-card {
+    background: #FFFFFF !important;
+    border: 2px solid #F05A28 !important; /* Deep Learning Orange Accent */
+    border-radius: 12px !important;
+    padding: 32px !important;
+    box-shadow: 0 10px 15px -3px rgba(240, 90, 40, 0.1) !important;
+    text-align: center;
+}
+
+/* KPI Summary Cards (Stripe inspired) */
+.kpi-card {
+    text-align: center;
+    padding: 16px !important;
+}
+.kpi-title {
+    color: #718096 !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px !important;
+}
+.kpi-value {
+    color: #1A202C !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+}
+
+/* ================================================================
+   Video Preview
+   ================================================================ */
+.video-preview video {
+    border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    max-height: 400px;
+    width: auto !important;
+    margin: 0 auto;
+}
+
+/* ================================================================
+   Primary Button
+   ================================================================ */
+.primary-btn {
+    background: #F05A28 !important; /* Deep Learning Orange */
+    color: #FFFFFF !important;
+    border: none !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    padding: 10px 20px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+.primary-btn:hover {
+    transform: translateY(-1px) !important;
+    background: #EA580C !important; /* Slightly darker on hover */
+    box-shadow: 0 4px 12px rgba(240, 90, 40, 0.2) !important;
 }
 
 /* ================================================================
@@ -57,73 +147,51 @@ CUSTOM_CSS: str = """
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 0.85rem !important;
     line-height: 1.6 !important;
+    background: #FAFAFC !important;
+    border: 2px solid #F05A28 !important; /* Deep Learning Orange */
+    color: #4A5568 !important;
 }
 
 /* ================================================================
-   Status Message
-   ================================================================ */
-.status-msg .prose {
-    font-size: 1.05rem !important;
-}
-
-/* ================================================================
-   Comparison Summary
-   ================================================================ */
-.comparison-summary .prose {
-    font-size: 0.9rem !important;
-    line-height: 1.7 !important;
-}
-
-/* ================================================================
-   Video Preview
-   ================================================================ */
-.video-preview video {
-    border-radius: 12px;
-    border: 2px solid rgba(108, 99, 255, 0.3);
-}
-
-/* ================================================================
-   Primary Button
-   ================================================================ */
-.primary-btn {
-    background: linear-gradient(135deg, #6C63FF, #00D68F) !important;
-    border: none !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    padding: 12px 24px !important;
-    border-radius: 10px !important;
-    transition: all 0.3s ease !important;
-}
-.primary-btn:hover {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(108, 99, 255, 0.35) !important;
-}
-
-/* ================================================================
-   Tab Navigation
-   ================================================================ */
-.tabs .tab-nav button {
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-}
-
-/* ================================================================
-   Language Selector
+   Language Selector (Compact Toggle)
    ================================================================ */
 .language-selector {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 8px;
-    padding: 8px;
-    margin-top: 10px;
-    margin-right: 15px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-.language-selector fieldset {
-    display: flex;
-    justify-content: center;
+    background: #FAFAFC !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    border: 1px solid #E2E8F0 !important;
 }
 .language-selector label {
-    font-weight: bold !important;
-    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    font-size: 0.8rem !important;
+    color: #4A5568 !important;
+}
+
+/* ================================================================
+   Loaders & Spinners
+   ================================================================ */
+.generating, .loading {
+    color: #F05A28 !important;
+}
+.loader {
+    border-color: #F05A28 !important;
+    border-bottom-color: transparent !important;
+}
+
+/* ================================================================
+   Footer
+   ================================================================ */
+.academic-footer {
+    text-align: center;
+    padding: 32px 0;
+    margin-top: 48px;
+    border-top: 1px solid #E2E8F0;
+    color: #718096;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+.academic-footer strong {
+    color: #4A5568;
+    font-weight: 600;
 }
 """
