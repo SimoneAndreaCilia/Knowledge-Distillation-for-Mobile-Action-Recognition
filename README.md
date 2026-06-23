@@ -82,6 +82,36 @@ python src/evaluation/evaluate_tsne.py
 python src/evaluation/comparison.py
 ```
 
+## 🖥️ Graphical User Interface (Gradio)
+
+To provide an interactive and accessible way to test our models, we have integrated a **Gradio web interface**. Gradio allows for rapid creation of intuitive UIs for machine learning applications directly from Python.
+
+Through this interface, users can easily interact with the project:
+- **Single Inference**: Select videos from the HMDB-51 dataset or upload custom ones to perform action recognition using any of the available models (Teacher, Student Baseline, Student Distilled, etc.). The interface displays the predicted action, Top-5 confidence scores, and detailed model metadata (parameter count, size in MB, and inference latency).
+- **Model Comparison**: Run inference on the same video simultaneously across all selected models. This visualizes a side-by-side comparison of their performance, highlighting how the distilled student models close the gap with the teacher through dynamic confidence bar charts.
+
+To launch the Gradio interface locally, run:
+
+```bash
+python -m src.main
+```
+
+<details>
+<summary><b>🖼️ Click to view Interface Screenshots</b></summary>
+<br>
+
+<p align="center">
+  <b>Single Inference</b><br>
+  <img src="figures/gui_single.png" width="750" alt="Gradio Single Inference" />
+</p>
+
+<p align="center">
+  <b>Model Comparison</b><br>
+  <img src="figures/gui_comparison.png" width="750" alt="Gradio Model Comparison" />
+</p>
+
+</details>
+
 ## 🏆 Quantitative Results
 
 The following table summarizes the performance and efficiency trade-offs between the Teacher model and the various Student models on HMDB-51.
