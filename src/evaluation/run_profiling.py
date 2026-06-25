@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-from src.evaluation.profile import profile_model
+from src.evaluation.model_profiling import profile_model
 from src.models import build_model
 
 def main():
