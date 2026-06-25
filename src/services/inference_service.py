@@ -110,6 +110,61 @@ class InferenceService:
             ground_truth=ground_truth,
         )
 
+    def run_gradcam(
+        self,
+        video_path: Union[str, Path],
+        model_key: str,
+        target_layer: str,
+        target_class: Optional[int] = None,
+        output_dir: Union[str, Path] = "results/gradcam"
+    ) -> str:
+        """Run Grad-CAM inference and save the video overlay.
+        
+        Args:
+            video_path:   Path to a video file.
+            model_key:    Registry key of the model to use.
+            target_layer: The name of the layer to attach the hook.
+            target_class: Optional specific class index to analyze. If None, uses top predicted class.
+            output_dir:   Directory to save the generated video.
+            
+        Returns:
+            Path to the generated video file.
+        """
+        import os
+        import datetime
+        from src.evaluation.inference import preprocess_video
+        from src.visualization.grad_cam import generate_gradcam_video
+        
+        model = self._model_service.get_or_load(model_key)
+        
+        # Preprocess to get tensor AND raw frames
+        clip_tensor, raw_frames = preprocess_video(str(video_path), return_frames=True)
+        clip_tensor = clip_tensor.to(self._device)
+        
+        # Generate output filename
+        os.makedirs(output_dir, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        video_name = Path(video_path).stem
+        safe_model_key = model_key.split(" ")[0].lower() # e.g. "teacher" or "student"
+        output_filename = f"{safe_model_key}_{video_name}_{timestamp}.mp4"
+        output_path = os.path.join(output_dir, output_filename)
+        
+        logger.info(
+            "InferenceService: Generating Grad-CAM for '%s' using layer '%s'. Output: %s",
+            model_key, target_layer, output_path
+        )
+        
+        generate_gradcam_video(
+            model=model,
+            video_tensor=clip_tensor,
+            raw_frames=raw_frames,
+            target_layer_name=target_layer,
+            output_path=output_path,
+            target_class=target_class
+        )
+        
+        return output_path
+
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------

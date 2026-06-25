@@ -22,12 +22,14 @@ from src.visualization.comparison_chart import ComparisonChartBuilder
 from src.gui.callbacks.dataset_callbacks import DatasetCallbackHandler
 from src.gui.callbacks.inference_callbacks import InferenceCallbackHandler
 from src.gui.callbacks.comparison_callbacks import ComparisonCallbackHandler
+from src.gui.callbacks.gradcam_callbacks import GradCamCallbackHandler
 from src.gui.ui.theme import build_theme
 from src.gui.ui.styles import CUSTOM_CSS
 from src.gui.ui.header import Header
 from src.gui.ui.footer import Footer
 from src.gui.ui.single_inference_tab import SingleInferenceTab
 from src.gui.ui.comparison_tab import ComparisonTab
+from src.gui.ui.gradcam_tab import GradCamTab
 from src.i18n.translator import Translator
 from src.i18n.languages import Language
 
@@ -135,10 +137,18 @@ class ApplicationBuilder:
             registry=registry,
             video_converter=video_converter,
         )
+        
+        class_names = dataset_service.get_classes()
+        gradcam_handler = GradCamCallbackHandler(
+            inference_service=inference_service,
+            dataset_service=dataset_service,
+            translator=translator,
+            classes=class_names,
+        )
 
         # ---- 7. Gradio UI ------------------------------------------------
         theme = build_theme()
-        classes = dataset_service.get_classes()
+        classes = class_names
         default_class = classes[0] if classes else None
 
         import gradio as gr  # noqa: PLC0415
@@ -173,6 +183,16 @@ class ApplicationBuilder:
                     default_class=default_class,
                 )
                 comp_tab.build(lang_state=lang_state)
+                
+                gradcam_tab = GradCamTab(
+                    demo=demo,
+                    gradcam_handler=gradcam_handler,
+                    dataset_handler=dataset_handler,
+                    registry=registry,
+                    classes=classes,
+                    default_class=default_class,
+                )
+                gradcam_tab.build(lang_state=lang_state)
 
             # Footer
             footer = Footer(num_classes=len(class_names))
@@ -183,10 +203,11 @@ class ApplicationBuilder:
                 header_updates = header.get_language_updates(translator)
                 single_updates = single_tab.get_language_updates(translator)
                 comp_updates = comp_tab.get_language_updates(translator)
+                gradcam_updates = gradcam_tab.get_language_updates(translator)
                 footer_updates = footer.get_language_updates(translator)
                 
                 res = []
-                for updates in [header_updates, single_updates, comp_updates, footer_updates]:
+                for updates in [header_updates, single_updates, comp_updates, gradcam_updates, footer_updates]:
                     for comp, update_func in updates.items():
                         res.append(update_func(Language(lang)))
                 return tuple(res)
@@ -195,6 +216,7 @@ class ApplicationBuilder:
             for updates in [header.get_language_updates(translator), 
                             single_tab.get_language_updates(translator), 
                             comp_tab.get_language_updates(translator), 
+                            gradcam_tab.get_language_updates(translator),
                             footer.get_language_updates(translator)]:
                 ui_components.extend(list(updates.keys()))
                 
