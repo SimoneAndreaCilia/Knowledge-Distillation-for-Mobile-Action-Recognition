@@ -1,0 +1,5 @@
+Top-1 Accuracy: 47.06%
+Top-5 Accuracy: 76.21%
+Macro Precision: 47.75%
+Macro Recall: 47.06%
+Macro F1 Score: 46.26%
