@@ -21,7 +21,7 @@ from src.models import build_model
 KINETICS_MEAN = [0.43216, 0.394666, 0.37645]
 KINETICS_STD = [0.22803, 0.22145, 0.216989]
 
-def preprocess_video(video_path, num_frames=16, target_size=112):
+def preprocess_video(video_path, num_frames=16, target_size=112, return_frames=False):
     """
     Carica il video e applica lo stesso preprocessing usato in fase di test:
     - Campionamento deterministico di num_frames
@@ -64,12 +64,13 @@ def preprocess_video(video_path, num_frames=16, target_size=112):
     # Resize e Center Crop
     resize_size = int(target_size * 1.14)
     resized = np.stack([cv2.resize(f, (resize_size, resize_size)) for f in frames])
-    clip = resized.astype(np.float32) / 255.0
     
-    new_h, new_w = clip.shape[1], clip.shape[2]
+    new_h, new_w = resized.shape[1], resized.shape[2]
     top = (new_h - target_size) // 2
     left = (new_w - target_size) // 2
-    clip = clip[:, top:top + target_size, left:left + target_size, :]
+    cropped_frames = resized[:, top:top + target_size, left:left + target_size, :]
+    
+    clip = cropped_frames.astype(np.float32) / 255.0
     
     # (T, H, W, C) -> (C, T, H, W) e normalizzazione
     clip_tensor = torch.from_numpy(clip).permute(3, 0, 1, 2).contiguous()
@@ -77,6 +78,8 @@ def preprocess_video(video_path, num_frames=16, target_size=112):
     std = torch.tensor(KINETICS_STD).view(3, 1, 1, 1)
     clip_tensor = (clip_tensor - mean) / std
     
+    if return_frames:
+        return clip_tensor.unsqueeze(0), cropped_frames
     return clip_tensor.unsqueeze(0) # Aggiungiamo la dimensione di batch
 
 def main():
