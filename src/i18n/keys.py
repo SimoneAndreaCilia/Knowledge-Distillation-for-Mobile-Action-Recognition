@@ -17,6 +17,7 @@ class TranslationKey(str, Enum):
     TAB_SINGLE_INFERENCE = "tabs.single_inference"
     TAB_COMPARISON = "tabs.comparison"
     TAB_GRADCAM = "tabs.gradcam"
+    TAB_BATCH_EVAL = "tabs.batch_eval"
     
     # Video Input
     VIDEO_INPUT_TITLE = "video_input.section_title"
@@ -101,6 +102,31 @@ class TranslationKey(str, Enum):
     DESC_STUDENT_AT_BETA10 = "models.student_at_beta10"
     DESC_STUDENT_AT_BETA100 = "models.student_at_beta100"
     DESC_STUDENT_KD_T10_W1_5 = "models.student_kd_t10_w1_5"
+
+
+    # Batch Evaluation Tab
+    BATCH_DESC = "batch.description"
+    BATCH_CONTROLS_TITLE = "batch.controls_title"
+    BATCH_MODELS_LABEL = "batch.models_label"
+    BATCH_RUN_BTN = "batch.run_btn"
+    BATCH_STATUS_WAITING = "batch.status_waiting"
+    BATCH_ACCURACY_LABEL = "batch.accuracy_label"
+    BATCH_DETAIL_MODEL_LABEL = "batch.detail_model_label"
+    BATCH_CONFIDENCE_LABEL = "batch.confidence_label"
+    BATCH_CONFUSION_LABEL = "batch.confusion_label"
+    BATCH_TABLE_LABEL = "batch.table_label"
+    BATCH_COL_MODEL = "batch.columns.model"
+    BATCH_COL_VIDEO = "batch.columns.video"
+    BATCH_COL_PREDICTED = "batch.columns.predicted"
+    BATCH_COL_CONFIDENCE = "batch.columns.confidence"
+    BATCH_COL_TRUE_CONFIDENCE = "batch.columns.true_confidence"
+    BATCH_COL_TOP5 = "batch.columns.top5"
+    BATCH_COL_CORRECT = "batch.columns.correct"
+    BATCH_SUMMARY_TITLE = "batch.summary_title"
+    BATCH_SUMMARY_MODEL = "batch.summary_model"
+    BATCH_PROGRESS_LABEL = "batch.progress_label"
+    BATCH_ERR_NO_CLASS = "batch.err_no_class"
+    BATCH_ERR_NO_MODELS = "batch.err_no_models"
 
     # Grad-CAM Tab
     GRADCAM_SETTINGS_TITLE = "gradcam.settings_title"

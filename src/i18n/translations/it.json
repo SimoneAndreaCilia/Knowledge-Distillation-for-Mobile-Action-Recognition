@@ -8,7 +8,8 @@
   "tabs": {
     "single_inference": "🔍 Inferenza Singola",
     "comparison": "⚔️ Confronto Modelli",
-    "gradcam": "🔥 Visualizza Attenzione"
+    "gradcam": "🔥 Visualizza Attenzione",
+    "batch_eval": "Valutazione Cartella"
   },
   "video_input": {
     "section_title": "### 🎥 Video Input",
@@ -112,5 +113,31 @@
     "err_select_manual_class": "Seleziona una classe manuale.",
     "err_model1": "Errore Modello 1: {error}",
     "err_model2": "Errore Modello 2: {error}"
+  },
+  "batch": {
+    "description": "### Valutazione batch per cartella\nValuta una classe azione sui modelli selezionati e analizza il comportamento per classe.",
+    "controls_title": "### Configurazione valutazione",
+    "models_label": "Modelli",
+    "run_btn": "Esegui valutazione batch",
+    "status_waiting": "*In attesa della valutazione batch...*",
+    "accuracy_label": "Accuracy Top-1 / Top-5",
+    "detail_model_label": "Modello per grafici di dettaglio",
+    "confidence_label": "Distribuzione confidenza classe corretta",
+    "confusion_label": "Errori pi? frequenti",
+    "table_label": "Risultati per video",
+    "columns": {
+      "model": "Modello",
+      "video": "Video",
+      "predicted": "Classe predetta",
+      "confidence": "Confidenza Top-1 (%)",
+      "true_confidence": "Confidenza classe vera (%)",
+      "top5": "Classi Top-5",
+      "correct": "Corretto"
+    },
+    "summary_title": "**Classe:** `{class_name}`  |  **Split:** `{split}`",
+    "summary_model": "- **{model}**: {total} video, Top-1 {top1:.1f}%, Top-5 {top5:.1f}%, saltati {skipped}",
+    "progress_label": "{current}/{total} - {model} - {video}",
+    "err_no_class": "Seleziona una classe azione prima di avviare la valutazione batch.",
+    "err_no_models": "Seleziona almeno un modello."
   }
 }

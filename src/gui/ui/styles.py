@@ -206,6 +206,32 @@ body {
 }
 
 /* ================================================================
+   Tables (gr.Dataframe) & Code blocks (force light theme)
+   ================================================================ */
+.gradio-container table {
+    background-color: #FFFFFF !important;
+    color: #1A202C !important;
+}
+.gradio-container th, .gradio-container td {
+    background-color: #FFFFFF !important;
+    color: #1A202C !important;
+    border-color: #E2E8F0 !important;
+}
+.gradio-container tr:nth-child(even) td {
+    background-color: #F7F8FA !important;
+}
+.gradio-container tr:hover td {
+    background-color: #EDF2F7 !important;
+}
+.gradio-container code, .prose code {
+    background-color: #EDF2F7 !important;
+    color: #E53E3E !important; /* Muted red for inline code */
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    border: 1px solid #E2E8F0 !important;
+}
+
+/* ================================================================
    Footer
    ================================================================ */
 .academic-footer {

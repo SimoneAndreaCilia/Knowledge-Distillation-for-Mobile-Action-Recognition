@@ -93,7 +93,7 @@ class InferenceService:
         clip_tensor = preprocess_video(str(video_path)).to(self._device)
 
         t0 = time.perf_counter()
-        predictions = self._forward(model, clip_tensor)
+        predictions, all_probs = self._forward_with_full_probs(model, clip_tensor)
         elapsed = time.perf_counter() - t0
 
         logger.info(
@@ -103,11 +103,16 @@ class InferenceService:
             elapsed,
         )
 
+        correct_conf: Optional[float] = None
+        if ground_truth and ground_truth in all_probs:
+            correct_conf = all_probs[ground_truth]
+
         return InferenceResult(
             model_key=model_key,
             top_predictions=predictions,
             elapsed_seconds=elapsed,
             ground_truth=ground_truth,
+            correct_class_confidence=correct_conf,
         )
 
     def run_gradcam(
@@ -244,12 +249,36 @@ class InferenceService:
         self, model: torch.nn.Module, clip: torch.Tensor
     ) -> List[Prediction]:
         """Run the forward pass and convert logits to Prediction objects."""
+        predictions, _ = self._forward_with_full_probs(model, clip)
+        return predictions
+
+    def _forward_with_full_probs(
+        self, model: torch.nn.Module, clip: torch.Tensor
+    ) -> Tuple[List[Prediction], dict]:
+        """Run the forward pass and return top-k predictions AND full class probabilities.
+
+        Returns:
+            (predictions, all_probs) where all_probs is a {class_name: probability} dict
+            for the entire output distribution.
+        """
         with torch.no_grad():
             logits = model(clip)
             probs = F.softmax(logits, dim=1)
             k = min(self._top_k, probs.shape[1])
             top_probs, top_indices = torch.topk(probs, k, dim=1)
 
+        # Full distribution (all classes)
+        all_probs: dict = {}
+        prob_cpu = probs[0].cpu().tolist()
+        for idx, p in enumerate(prob_cpu):
+            label = (
+                self._class_names[idx]
+                if idx < len(self._class_names)
+                else f"Class {idx}"
+            )
+            all_probs[label] = float(p)
+
+        # Top-k predictions
         predictions: List[Prediction] = []
         for i in range(k):
             idx = int(top_indices[0][i].item())
@@ -261,4 +290,4 @@ class InferenceService:
             )
             predictions.append(Prediction(class_name=label, confidence=prob))
 
-        return predictions
+        return predictions, all_probs

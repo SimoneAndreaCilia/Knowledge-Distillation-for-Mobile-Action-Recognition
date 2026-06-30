@@ -88,5 +88,19 @@ def build_theme():
         # Panel & Labels
         panel_background_fill="#FFFFFF",
         panel_background_fill_dark="#FFFFFF",
+        # Tables (Dataframes)
+        table_border_color="#E2E8F0",
+        table_border_color_dark="#E2E8F0",
+        table_even_background_fill="#F7F8FA",
+        table_even_background_fill_dark="#F7F8FA",
+        table_odd_background_fill="#FFFFFF",
+        table_odd_background_fill_dark="#FFFFFF",
+        table_row_focus="#EDF2F7",
+        table_row_focus_dark="#EDF2F7",
+        # Code elements
+        code_background_fill="#EDF2F7",
+        code_background_fill_dark="#EDF2F7",
+        stat_background_fill="#EDF2F7",
+        stat_background_fill_dark="#EDF2F7",
     )
 

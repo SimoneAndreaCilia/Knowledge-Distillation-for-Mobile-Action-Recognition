@@ -8,7 +8,8 @@
   "tabs": {
     "single_inference": "🔍 Single Inference",
     "comparison": "⚔️ Model Comparison",
-    "gradcam": "🔥 Attention Visualization"
+    "gradcam": "🔥 Attention Visualization",
+    "batch_eval": "Folder Evaluation"
   },
   "video_input": {
     "section_title": "### 🎥 Video Input",
@@ -112,5 +113,31 @@
     "err_select_manual_class": "Please select a manual class.",
     "err_model1": "Model 1 Error: {error}",
     "err_model2": "Model 2 Error: {error}"
+  },
+  "batch": {
+    "description": "### Folder-Level Batch Evaluation\nEvaluate one action class across selected models and inspect class-level behavior.",
+    "controls_title": "### Evaluation Setup",
+    "models_label": "Models",
+    "run_btn": "Run Batch Evaluation",
+    "status_waiting": "*Waiting for batch evaluation...*",
+    "accuracy_label": "Top-1 / Top-5 Accuracy",
+    "detail_model_label": "Model for detail charts",
+    "confidence_label": "Correct-Class Confidence Distribution",
+    "confusion_label": "Confusion Breakdown",
+    "table_label": "Per-video results",
+    "columns": {
+      "model": "Model",
+      "video": "Video",
+      "predicted": "Predicted class",
+      "confidence": "Top-1 confidence (%)",
+      "true_confidence": "True-class confidence (%)",
+      "top5": "Top-5 classes",
+      "correct": "Correct"
+    },
+    "summary_title": "**Class:** `{class_name}`  |  **Split:** `{split}`",
+    "summary_model": "- **{model}**: {total} videos, Top-1 {top1:.1f}%, Top-5 {top5:.1f}%, skipped {skipped}",
+    "progress_label": "{current}/{total} - {model} - {video}",
+    "err_no_class": "Select an action class before running the batch evaluation.",
+    "err_no_models": "Select at least one model."
   }
 }
