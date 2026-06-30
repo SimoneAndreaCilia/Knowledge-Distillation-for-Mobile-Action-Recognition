@@ -192,7 +192,7 @@ class ApplicationBuilder:
                     classes=classes,
                     default_class=default_class,
                 )
-                gradcam_tab.build(lang_state=lang_state)
+                gradcam_tab.build(lang_state=lang_state, translator=translator)
 
             # Footer
             footer = Footer(num_classes=len(class_names))

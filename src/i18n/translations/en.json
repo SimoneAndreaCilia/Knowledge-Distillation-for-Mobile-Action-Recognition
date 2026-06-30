@@ -7,7 +7,8 @@
   },
   "tabs": {
     "single_inference": "🔍 Single Inference",
-    "comparison": "⚔️ Model Comparison"
+    "comparison": "⚔️ Model Comparison",
+    "gradcam": "🔥 Attention Visualization"
   },
   "video_input": {
     "section_title": "### 🎥 Video Input",
@@ -86,5 +87,26 @@
     "student_at_beta10": "KD + AT with reduced β=10 (balanced loss weighting).",
     "student_at_beta100": "KD + AT with intermediate β=100 (ablation).",
     "student_kd_t10_w1_5": "Wider student (α=1.5, ~4.7M params) with KD T=10. ~7× compression vs Teacher."
+  },
+  "gradcam": {
+    "settings_title": "### ⚙️ Model Configuration & Target Class",
+    "model1_label": "Model 1 (Left)",
+    "layer1_label": "Target Layer (Model 1)",
+    "model2_label": "Model 2 (Right)",
+    "layer2_label": "Target Layer (Model 2)",
+    "class_mode_label": "Target Class (for Grad-CAM)",
+    "class_mode_ground_truth": "ground_truth",
+    "class_mode_predicted": "predicted",
+    "class_mode_manual": "manual",
+    "manual_class_label": "Manual Class",
+    "generate_btn": "🔥 Generate Grad-CAM",
+    "output1_label": "Model 1: Attention Map",
+    "output2_label": "Model 2: Attention Map",
+    "err_select_video": "Please select a video from the dataset.",
+    "err_upload_video": "Please upload a video.",
+    "err_no_ground_truth": "No Ground Truth available for uploaded videos. Choose 'Predicted' or 'Manual'.",
+    "err_select_manual_class": "Please select a manual class.",
+    "err_model1": "Model 1 Error: {error}",
+    "err_model2": "Model 2 Error: {error}"
   }
 }

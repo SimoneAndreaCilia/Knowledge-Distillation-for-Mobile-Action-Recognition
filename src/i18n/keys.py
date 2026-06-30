@@ -16,6 +16,7 @@ class TranslationKey(str, Enum):
     # Tabs
     TAB_SINGLE_INFERENCE = "tabs.single_inference"
     TAB_COMPARISON = "tabs.comparison"
+    TAB_GRADCAM = "tabs.gradcam"
     
     # Video Input
     VIDEO_INPUT_TITLE = "video_input.section_title"
@@ -100,3 +101,26 @@ class TranslationKey(str, Enum):
     DESC_STUDENT_AT_BETA10 = "models.student_at_beta10"
     DESC_STUDENT_AT_BETA100 = "models.student_at_beta100"
     DESC_STUDENT_KD_T10_W1_5 = "models.student_kd_t10_w1_5"
+
+    # Grad-CAM Tab
+    GRADCAM_SETTINGS_TITLE = "gradcam.settings_title"
+    GRADCAM_MODEL1_LABEL = "gradcam.model1_label"
+    GRADCAM_LAYER1_LABEL = "gradcam.layer1_label"
+    GRADCAM_MODEL2_LABEL = "gradcam.model2_label"
+    GRADCAM_LAYER2_LABEL = "gradcam.layer2_label"
+    GRADCAM_CLASS_MODE_LABEL = "gradcam.class_mode_label"
+    GRADCAM_CLASS_MODE_GROUND_TRUTH = "gradcam.class_mode_ground_truth"
+    GRADCAM_CLASS_MODE_PREDICTED = "gradcam.class_mode_predicted"
+    GRADCAM_CLASS_MODE_MANUAL = "gradcam.class_mode_manual"
+    GRADCAM_MANUAL_CLASS_LABEL = "gradcam.manual_class_label"
+    GRADCAM_GENERATE_BTN = "gradcam.generate_btn"
+    GRADCAM_OUTPUT1_LABEL = "gradcam.output1_label"
+    GRADCAM_OUTPUT2_LABEL = "gradcam.output2_label"
+
+    # Grad-CAM Errors
+    GRADCAM_ERR_SELECT_VIDEO = "gradcam.err_select_video"
+    GRADCAM_ERR_UPLOAD_VIDEO = "gradcam.err_upload_video"
+    GRADCAM_ERR_NO_GROUND_TRUTH = "gradcam.err_no_ground_truth"
+    GRADCAM_ERR_SELECT_MANUAL_CLASS = "gradcam.err_select_manual_class"
+    GRADCAM_ERR_MODEL1 = "gradcam.err_model1"
+    GRADCAM_ERR_MODEL2 = "gradcam.err_model2"

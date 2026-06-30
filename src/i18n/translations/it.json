@@ -7,7 +7,8 @@
   },
   "tabs": {
     "single_inference": "🔍 Inferenza Singola",
-    "comparison": "⚔️ Confronto Modelli"
+    "comparison": "⚔️ Confronto Modelli",
+    "gradcam": "🔥 Visualizza Attenzione"
   },
   "video_input": {
     "section_title": "### 🎥 Video Input",
@@ -86,5 +87,26 @@
     "student_at_beta10": "KD + AT con β=10 ridotto (pesatura loss bilanciata).",
     "student_at_beta100": "KD + AT con β=100 intermedio (ablation).",
     "student_kd_t10_w1_5": "Student allargato (α=1.5, ~4.7M params) con KD T=10. Compressione ~7× rispetto al Teacher."
+  },
+  "gradcam": {
+    "settings_title": "### ⚙️ Configurazione Modelli e Classe Target",
+    "model1_label": "Modello 1 (Sinistra)",
+    "layer1_label": "Target Layer (Modello 1)",
+    "model2_label": "Modello 2 (Destra)",
+    "layer2_label": "Target Layer (Modello 2)",
+    "class_mode_label": "Classe Target (per Grad-CAM)",
+    "class_mode_ground_truth": "ground_truth",
+    "class_mode_predicted": "predicted",
+    "class_mode_manual": "manual",
+    "manual_class_label": "Classe Manuale",
+    "generate_btn": "🔥 Genera Grad-CAM",
+    "output1_label": "Modello 1: Mappa di Attenzione",
+    "output2_label": "Modello 2: Mappa di Attenzione",
+    "err_select_video": "Seleziona un video dal dataset.",
+    "err_upload_video": "Carica un video.",
+    "err_no_ground_truth": "Nessuna Ground Truth per i video caricati. Scegli 'Predetta' o 'Manuale'.",
+    "err_select_manual_class": "Seleziona una classe manuale.",
+    "err_model1": "Errore Modello 1: {error}",
+    "err_model2": "Errore Modello 2: {error}"
   }
 }
