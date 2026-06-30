@@ -31,7 +31,7 @@ This repository addresses the high computational cost of video action recognitio
     ├── i18n/         # Internationalization (i18n) and translations
     ├── models/       # 3D ResNet and MobileNet architectures
     ├── repositories/ # Data access layer
-    ├── services/     # Application services (Inference, Comparison, Video Converter)
+    ├── services/     # Application services (Inference, Comparison, Batch Eval, Video Converter)
     ├── training/     # Training and Knowledge Distillation loops
     ├── utils/        # Utility and helper functions
     └── visualization/# Plotting and t-SNE generation scripts
@@ -120,6 +120,8 @@ To provide an interactive and accessible way to test our models, we have integra
 Through this interface, users can easily interact with the project:
 - **Single Inference**: Select videos from the HMDB-51 dataset or upload custom ones to perform action recognition using any of the available models (Teacher, Student Baseline, Student Distilled, etc.). The interface displays the predicted action, Top-5 confidence scores, and detailed model metadata (parameter count, size in MB, and inference latency).
 - **Model Comparison**: Run inference on the same video simultaneously across all selected models. This visualizes a side-by-side comparison of their performance, highlighting how the distilled student models close the gap with the teacher through dynamic confidence bar charts.
+- **Visual Attention (Grad-CAM)**: Visualize the network's spatial attention on the input video to interpret what regions the models focus on when predicting specific action classes. Includes support for custom target layers and interactive top-k predictions.
+- **Folder Evaluation**: Run multi-model batch inference on entire HMDB-51 action class folders, complete with progress tracking, Top-1/Top-5 accuracy metrics, correct-class confidence distribution, and confusion breakdowns.
 
 To launch the Gradio interface locally, run:
 
@@ -139,6 +141,16 @@ python -m src.main
 <p align="center">
   <b>Model Comparison</b><br>
   <img src="figures/gui_comparison.png" width="750" alt="Gradio Model Comparison" />
+</p>
+
+<p align="center">
+  <b>Visual Attention (Grad-CAM)</b><br>
+  <img src="figures/gradcamtab.png" width="750" alt="Gradio Grad-CAM" />
+</p>
+
+<p align="center">
+  <b>Folder-Level Batch Evaluation</b><br>
+  <img src="figures/folderevaluationtab.png" width="750" alt="Gradio Folder Evaluation" />
 </p>
 
 </details>
