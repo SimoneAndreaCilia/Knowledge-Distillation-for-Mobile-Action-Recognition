@@ -205,6 +205,12 @@ class GradCamTab:
                     lang_state,
                 ],
                 outputs=[self.video1_out, self.pred1_label, self.video2_out, self.pred2_label],
+            ).then(
+                # Re-apply visibility so the manual dropdown is not left
+                # in a locked/hidden state after a long-running callback.
+                fn=toggle_manual_class,
+                inputs=[self.class_mode_dropdown],
+                outputs=[self.manual_class_dropdown],
             )
 
             self.demo.load(
