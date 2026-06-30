@@ -1,0 +1,16 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+torchaudio
+numpy
+pandas
+matplotlib
+scikit-learn
+pyyaml
+tensorboard
+tqdm
+opencv-python
+thop
+gradio>=4.0
+imageio
+imageio-ffmpeg

@@ -43,13 +43,31 @@ This repository addresses the high computational cost of video action recognitio
 ### 1. Data and Environment Setup
 
 **Prerequisites:**
-You can set up the required environment and install all dependencies using Anaconda:
+You can set up the required environment and install all dependencies using Anaconda.
 
+For systems with an NVIDIA GPU (Recommended):
 ```bash
 git clone https://github.com/SimoneAndreaCilia/Knowledge-Distillation-for-Mobile-Action-Recognition.git
 cd Knowledge-Distillation-for-Mobile-Action-Recognition
 conda env create -f environment.yml
 conda activate dl-project
+```
+
+For systems without an NVIDIA GPU (CPU-only):
+```bash
+git clone https://github.com/SimoneAndreaCilia/Knowledge-Distillation-for-Mobile-Action-Recognition.git
+cd Knowledge-Distillation-for-Mobile-Action-Recognition
+conda env create -f environment-cpu.yml
+conda activate dl-project
+```
+
+Alternatively, if you prefer using `pip` without Conda, you can install the dependencies using the provided text files:
+```bash
+# For GPU
+pip install -r requirements.txt
+
+# For CPU-only
+pip install -r requirements-cpu.txt
 ```
 
 **Dataset:**
