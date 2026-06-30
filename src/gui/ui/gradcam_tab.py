@@ -85,6 +85,7 @@ class GradCamTab:
                         )
                         self.layer1_dropdown = gr.Dropdown(
                             label=t(TranslationKey.GRADCAM_LAYER1_LABEL),
+                            info=t(TranslationKey.GRADCAM_LAYER_INFO),
                             choices=["layer4", "layer3", "stages[-1]", "stages[4]"],
                             value="layer4",
                             interactive=True,
@@ -100,6 +101,7 @@ class GradCamTab:
                         )
                         self.layer2_dropdown = gr.Dropdown(
                             label=t(TranslationKey.GRADCAM_LAYER2_LABEL),
+                            info=t(TranslationKey.GRADCAM_LAYER_INFO),
                             choices=["layer4", "layer3", "stages[-1]", "stages[4]"],
                             value="stages[-1]",
                             interactive=True,
@@ -109,6 +111,7 @@ class GradCamTab:
                 with gr.Row():
                     self.class_mode_dropdown = gr.Radio(
                         label=t(TranslationKey.GRADCAM_CLASS_MODE_LABEL),
+                        info=t(TranslationKey.GRADCAM_CLASS_MODE_INFO),
                         choices=[
                             t(TranslationKey.GRADCAM_CLASS_MODE_GROUND_TRUTH),
                             t(TranslationKey.GRADCAM_CLASS_MODE_PREDICTED),
@@ -119,6 +122,7 @@ class GradCamTab:
                     )
                     self.manual_class_dropdown = gr.Dropdown(
                         label=t(TranslationKey.GRADCAM_MANUAL_CLASS_LABEL),
+                        info=t(TranslationKey.GRADCAM_MANUAL_CLASS_INFO),
                         choices=self.classes,
                         value=self.default_class,
                         interactive=True,
@@ -213,17 +217,24 @@ class GradCamTab:
             return gr.update(label=translator.t(TranslationKey.GRADCAM_MODEL1_LABEL, lang=lang))
 
         def update_layer1_dropdown(lang):
-            return gr.update(label=translator.t(TranslationKey.GRADCAM_LAYER1_LABEL, lang=lang))
+            return gr.update(
+                label=translator.t(TranslationKey.GRADCAM_LAYER1_LABEL, lang=lang),
+                info=translator.t(TranslationKey.GRADCAM_LAYER_INFO, lang=lang),
+            )
 
         def update_model2_dropdown(lang):
             return gr.update(label=translator.t(TranslationKey.GRADCAM_MODEL2_LABEL, lang=lang))
 
         def update_layer2_dropdown(lang):
-            return gr.update(label=translator.t(TranslationKey.GRADCAM_LAYER2_LABEL, lang=lang))
+            return gr.update(
+                label=translator.t(TranslationKey.GRADCAM_LAYER2_LABEL, lang=lang),
+                info=translator.t(TranslationKey.GRADCAM_LAYER_INFO, lang=lang),
+            )
 
         def update_class_mode_dropdown(lang):
             return gr.update(
                 label=translator.t(TranslationKey.GRADCAM_CLASS_MODE_LABEL, lang=lang),
+                info=translator.t(TranslationKey.GRADCAM_CLASS_MODE_INFO, lang=lang),
                 choices=[
                     translator.t(TranslationKey.GRADCAM_CLASS_MODE_GROUND_TRUTH, lang=lang),
                     translator.t(TranslationKey.GRADCAM_CLASS_MODE_PREDICTED, lang=lang),
@@ -232,7 +243,10 @@ class GradCamTab:
             )
 
         def update_manual_class_dropdown(lang):
-            return gr.update(label=translator.t(TranslationKey.GRADCAM_MANUAL_CLASS_LABEL, lang=lang))
+            return gr.update(
+                label=translator.t(TranslationKey.GRADCAM_MANUAL_CLASS_LABEL, lang=lang),
+                info=translator.t(TranslationKey.GRADCAM_MANUAL_CLASS_INFO, lang=lang),
+            )
 
         def update_generate_btn(lang):
             return gr.update(value=translator.t(TranslationKey.GRADCAM_GENERATE_BTN, lang=lang))

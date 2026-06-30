@@ -117,6 +117,11 @@ class TranslationKey(str, Enum):
     GRADCAM_OUTPUT1_LABEL = "gradcam.output1_label"
     GRADCAM_OUTPUT2_LABEL = "gradcam.output2_label"
 
+    # Grad-CAM Info / Tooltips
+    GRADCAM_CLASS_MODE_INFO = "gradcam.class_mode_info"
+    GRADCAM_LAYER_INFO = "gradcam.layer_info"
+    GRADCAM_MANUAL_CLASS_INFO = "gradcam.manual_class_info"
+
     # Grad-CAM Errors
     GRADCAM_ERR_SELECT_VIDEO = "gradcam.err_select_video"
     GRADCAM_ERR_UPLOAD_VIDEO = "gradcam.err_upload_video"
