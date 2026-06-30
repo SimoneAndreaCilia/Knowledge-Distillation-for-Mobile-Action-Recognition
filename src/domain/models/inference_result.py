@@ -25,6 +25,8 @@ class InferenceResult:
     top_predictions: List[Prediction]
     elapsed_seconds: float
     ground_truth: Optional[str] = None
+    correct_class_confidence: Optional[float] = None
+    """Softmax probability for the ground-truth class (None if unknown)."""
 
     @property
     def top1(self) -> Optional[Prediction]:

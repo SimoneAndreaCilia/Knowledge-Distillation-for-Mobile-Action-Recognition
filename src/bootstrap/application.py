@@ -14,14 +14,17 @@ from src.config.settings import get_settings
 from src.repositories.checkpoint_repository import CheckpointRepository
 from src.repositories.model_registry import ModelRegistry
 from src.services.comparison_service import ComparisonService
+from src.services.batch_eval_service import BatchEvalService
 from src.services.dataset_service import DatasetService
 from src.services.inference_service import InferenceService
 from src.services.model_service import ModelService
 from src.services.video_converter import VideoConverter
 from src.visualization.comparison_chart import ComparisonChartBuilder
+from src.visualization.batch_chart import BatchChartBuilder
 from src.gui.callbacks.dataset_callbacks import DatasetCallbackHandler
 from src.gui.callbacks.inference_callbacks import InferenceCallbackHandler
 from src.gui.callbacks.comparison_callbacks import ComparisonCallbackHandler
+from src.gui.callbacks.batch_eval_callbacks import BatchEvalCallbackHandler
 from src.gui.callbacks.gradcam_callbacks import GradCamCallbackHandler
 from src.gui.ui.theme import build_theme
 from src.gui.ui.styles import CUSTOM_CSS
@@ -30,6 +33,7 @@ from src.gui.ui.footer import Footer
 from src.gui.ui.single_inference_tab import SingleInferenceTab
 from src.gui.ui.comparison_tab import ComparisonTab
 from src.gui.ui.gradcam_tab import GradCamTab
+from src.gui.ui.batch_eval_tab import BatchEvalTab
 from src.i18n.translator import Translator
 from src.i18n.languages import Language
 
@@ -108,6 +112,10 @@ class ApplicationBuilder:
             inference_service=inference_service,
             registry=registry,
         )
+        batch_eval_service = BatchEvalService(
+            dataset_service=dataset_service,
+            inference_service=inference_service,
+        )
         
         # Load I18n Translator
         i18n_dir = settings.project_root / "src" / "i18n" / "translations"
@@ -115,6 +123,7 @@ class ApplicationBuilder:
 
         # ---- 5. Visualization --------------------------------------------
         chart_builder = ComparisonChartBuilder()
+        batch_chart_builder = BatchChartBuilder()
 
         # Video format converter (AVI → MP4 for browser playback)
         video_converter = VideoConverter()
@@ -144,6 +153,13 @@ class ApplicationBuilder:
             dataset_service=dataset_service,
             translator=translator,
             classes=class_names,
+        )
+        batch_handler = BatchEvalCallbackHandler(
+            batch_service=batch_eval_service,
+            dataset_service=dataset_service,
+            registry=registry,
+            chart_builder=batch_chart_builder,
+            translator=translator,
         )
 
         # ---- 7. Gradio UI ------------------------------------------------
@@ -192,7 +208,16 @@ class ApplicationBuilder:
                     classes=classes,
                     default_class=default_class,
                 )
-                gradcam_tab.build(lang_state=lang_state)
+                gradcam_tab.build(lang_state=lang_state, translator=translator)
+
+                batch_tab = BatchEvalTab(
+                    demo=demo,
+                    batch_handler=batch_handler,
+                    registry=registry,
+                    classes=classes,
+                    default_class=default_class,
+                )
+                batch_tab.build(lang_state=lang_state)
 
             # Footer
             footer = Footer(num_classes=len(class_names))
@@ -204,10 +229,11 @@ class ApplicationBuilder:
                 single_updates = single_tab.get_language_updates(translator)
                 comp_updates = comp_tab.get_language_updates(translator)
                 gradcam_updates = gradcam_tab.get_language_updates(translator)
+                batch_updates = batch_tab.get_language_updates(translator)
                 footer_updates = footer.get_language_updates(translator)
                 
                 res = []
-                for updates in [header_updates, single_updates, comp_updates, gradcam_updates, footer_updates]:
+                for updates in [header_updates, single_updates, comp_updates, gradcam_updates, batch_updates, footer_updates]:
                     for comp, update_func in updates.items():
                         res.append(update_func(Language(lang)))
                 return tuple(res)
@@ -217,6 +243,7 @@ class ApplicationBuilder:
                             single_tab.get_language_updates(translator), 
                             comp_tab.get_language_updates(translator), 
                             gradcam_tab.get_language_updates(translator),
+                            batch_tab.get_language_updates(translator),
                             footer.get_language_updates(translator)]:
                 ui_components.extend(list(updates.keys()))
                 

@@ -7,7 +7,9 @@
   },
   "tabs": {
     "single_inference": "🔍 Single Inference",
-    "comparison": "⚔️ Model Comparison"
+    "comparison": "⚔️ Model Comparison",
+    "gradcam": "🔥 Attention Visualization",
+    "batch_eval": "Folder Evaluation"
   },
   "video_input": {
     "section_title": "### 🎥 Video Input",
@@ -86,5 +88,56 @@
     "student_at_beta10": "KD + AT with reduced β=10 (balanced loss weighting).",
     "student_at_beta100": "KD + AT with intermediate β=100 (ablation).",
     "student_kd_t10_w1_5": "Wider student (α=1.5, ~4.7M params) with KD T=10. ~7× compression vs Teacher."
+  },
+  "gradcam": {
+    "settings_title": "### ⚙️ Model Configuration & Target Class",
+    "model1_label": "Model 1 (Left)",
+    "layer1_label": "Target Layer (Model 1)",
+    "model2_label": "Model 2 (Right)",
+    "layer2_label": "Target Layer (Model 2)",
+    "class_mode_label": "Target Class (for Grad-CAM)",
+    "class_mode_ground_truth": "ground_truth",
+    "class_mode_predicted": "predicted",
+    "class_mode_manual": "manual",
+    "manual_class_label": "Manual Class",
+    "generate_btn": "🔥 Generate Grad-CAM",
+    "output1_label": "Model 1: Attention Map",
+    "output2_label": "Model 2: Attention Map",
+    "class_mode_info": "ground_truth — uses the video's known label as Grad-CAM target (only available for dataset videos). predicted — uses the model's top-1 predicted class as target. manual — lets you pick any class from the list.",
+    "layer_info": "layer4 — last ResNet block, high-level semantics (recommended for Teacher/ResNet). layer3 — penultimate ResNet block, mid-level features. stages[-1] — last MobileNet stage, recommended for Student models. stages[4] — earlier MobileNet stage, lower-level features. You can also type a custom layer name.",
+    "manual_class_info": "Select the action class to use as the Grad-CAM target. Only active when 'manual' mode is selected.",
+    "prediction_label": "🔮 Top-5 Predictions",
+    "err_select_video": "Please select a video from the dataset.",
+    "err_upload_video": "Please upload a video.",
+    "err_no_ground_truth": "No Ground Truth available for uploaded videos. Choose 'Predicted' or 'Manual'.",
+    "err_select_manual_class": "Please select a manual class.",
+    "err_model1": "Model 1 Error: {error}",
+    "err_model2": "Model 2 Error: {error}"
+  },
+  "batch": {
+    "description": "### Folder-Level Batch Evaluation\nEvaluate one action class across selected models and inspect class-level behavior.",
+    "controls_title": "### Evaluation Setup",
+    "models_label": "Models",
+    "run_btn": "Run Batch Evaluation",
+    "status_waiting": "*Waiting for batch evaluation...*",
+    "accuracy_label": "Top-1 / Top-5 Accuracy",
+    "detail_model_label": "Model for detail charts",
+    "confidence_label": "Correct-Class Confidence Distribution",
+    "confusion_label": "Confusion Breakdown",
+    "table_label": "Per-video results",
+    "columns": {
+      "model": "Model",
+      "video": "Video",
+      "predicted": "Predicted class",
+      "confidence": "Top-1 confidence (%)",
+      "true_confidence": "True-class confidence (%)",
+      "top5": "Top-5 classes",
+      "correct": "Correct"
+    },
+    "summary_title": "**Class:** `{class_name}`  |  **Split:** `{split}`",
+    "summary_model": "- **{model}**: {total} videos, Top-1 {top1:.1f}%, Top-5 {top5:.1f}%, skipped {skipped}",
+    "progress_label": "{current}/{total} - {model} - {video}",
+    "err_no_class": "Select an action class before running the batch evaluation.",
+    "err_no_models": "Select at least one model."
   }
 }
