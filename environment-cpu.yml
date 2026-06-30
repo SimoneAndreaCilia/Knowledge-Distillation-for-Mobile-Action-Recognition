@@ -1,7 +1,6 @@
 name: dl-project
 channels:
   - pytorch
-  - nvidia
   - defaults
 dependencies:
   - python=3.10
@@ -9,7 +8,7 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
-  - pytorch-cuda=13.2
+  - cpuonly
   # Add other conda packages here
   - pip:
       - numpy
