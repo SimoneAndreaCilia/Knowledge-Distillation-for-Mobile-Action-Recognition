@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from src.i18n.keys import TranslationKey
 from src.i18n.languages import Language
@@ -37,7 +37,7 @@ class GradCamCallbackHandler:
         class_mode: str,
         manual_class: str,
         lang_state: str,
-    ) -> Tuple[str, str]:
+    ) -> Tuple[str, Dict[str, float], str, Dict[str, float]]:
         import gradio as gr
         lang = Language(lang_state)
 
@@ -57,7 +57,7 @@ class GradCamCallbackHandler:
             video_path = uploaded_video
             gt_class = None
 
-        # 2. Resolve Target Class
+        # 2. Resolve Target Class index
         target_class_idx = None
         if class_mode == "ground_truth":
             if not gt_class:
@@ -74,12 +74,12 @@ class GradCamCallbackHandler:
             except ValueError:
                 target_class_idx = None
         elif class_mode == "predicted":
-            target_class_idx = None  # Handled dynamically inside generation
+            target_class_idx = None  # resolved dynamically inside generation
 
-        # 3. Generate Grad-CAM for Model 1
+        # 3. Generate Grad-CAM for Model 1 (with top-k predictions)
         logger.info("Generating Grad-CAM for Model 1: %s", model1_key)
         try:
-            video1_path = self._inference.run_gradcam(
+            video1_path, preds1 = self._inference.run_gradcam_with_prediction(
                 video_path=video_path,
                 model_key=model1_key,
                 target_layer=target_layer1,
@@ -89,10 +89,10 @@ class GradCamCallbackHandler:
             logger.exception("Grad-CAM error for Model 1: %s", e)
             raise gr.Error(t(TranslationKey.GRADCAM_ERR_MODEL1, error=e))
 
-        # 4. Generate Grad-CAM for Model 2
+        # 4. Generate Grad-CAM for Model 2 (with top-k predictions)
         logger.info("Generating Grad-CAM for Model 2: %s", model2_key)
         try:
-            video2_path = self._inference.run_gradcam(
+            video2_path, preds2 = self._inference.run_gradcam_with_prediction(
                 video_path=video_path,
                 model_key=model2_key,
                 target_layer=target_layer2,
@@ -102,4 +102,8 @@ class GradCamCallbackHandler:
             logger.exception("Grad-CAM error for Model 2: %s", e)
             raise gr.Error(t(TranslationKey.GRADCAM_ERR_MODEL2, error=e))
 
-        return video1_path, video2_path
+        # 5. Convert predictions to {class_name: confidence} dicts for gr.Label
+        label1 = {p.class_name: p.confidence for p in preds1} if preds1 else {}
+        label2 = {p.class_name: p.confidence for p in preds2} if preds2 else {}
+
+        return video1_path, label1, video2_path, label2

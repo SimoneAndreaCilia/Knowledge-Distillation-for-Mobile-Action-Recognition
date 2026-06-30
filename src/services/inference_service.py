@@ -14,7 +14,7 @@ Usage::
 import logging
 import time
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn.functional as F
@@ -164,6 +164,77 @@ class InferenceService:
         )
         
         return output_path
+
+    def run_gradcam_with_prediction(
+        self,
+        video_path: Union[str, Path],
+        model_key: str,
+        target_layer: str,
+        target_class: Optional[int] = None,
+        output_dir: Union[str, Path] = "results/gradcam"
+    ) -> Tuple[str, Optional["Prediction"]]:
+        """Run Grad-CAM and simultaneously capture the top-1 prediction.
+
+        Performs a single forward pass, extracts the top-1 prediction from the
+        logits produced during Grad-CAM, and returns both the output video path
+        and the top prediction object.
+
+        Args:
+            video_path:   Path to a video file.
+            model_key:    Registry key of the model to use.
+            target_layer: The name of the layer to attach the hook.
+            target_class: Optional specific class index to analyze.
+                          If None, the top-1 predicted class is used.
+            output_dir:   Directory to save the generated video.
+
+        Returns:
+            Tuple of (output_video_path, predictions) where predictions is the
+            top-k list ordered by confidence (highest first).
+        """
+        import os
+        import datetime
+        from src.evaluation.inference import preprocess_video
+        from src.visualization.grad_cam import generate_gradcam_video
+
+        model = self._model_service.get_or_load(model_key)
+
+        clip_tensor, raw_frames = preprocess_video(str(video_path), return_frames=True)
+        clip_tensor = clip_tensor.to(self._device)
+
+        # Run a no_grad forward pass to get top-k predictions
+        predictions = self._forward(model, clip_tensor)
+        top1 = predictions[0] if predictions else None
+
+        # If caller didn't specify a target class, use top-1 predicted
+        resolved_target = target_class
+        if resolved_target is None and top1 is not None:
+            try:
+                resolved_target = self._class_names.index(top1.class_name)
+            except ValueError:
+                resolved_target = None
+
+        os.makedirs(output_dir, exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        video_name = Path(video_path).stem
+        safe_model_key = model_key.split(" ")[0].lower()
+        output_filename = f"{safe_model_key}_{video_name}_{timestamp}.mp4"
+        output_path = os.path.join(output_dir, output_filename)
+
+        logger.info(
+            "InferenceService: Generating Grad-CAM for '%s' using layer '%s'. Output: %s",
+            model_key, target_layer, output_path
+        )
+
+        generate_gradcam_video(
+            model=model,
+            video_tensor=clip_tensor,
+            raw_frames=raw_frames,
+            target_layer_name=target_layer,
+            output_path=output_path,
+            target_class=resolved_target
+        )
+
+        return output_path, predictions
 
     # ------------------------------------------------------------------
     # Private helpers

@@ -49,7 +49,9 @@ class GradCamTab:
 
         self.generate_btn: Optional[gr.Button] = None
         self.video1_out: Optional[gr.Video] = None
+        self.pred1_label: Optional[gr.Label] = None
         self.video2_out: Optional[gr.Video] = None
+        self.pred2_label: Optional[gr.Label] = None
 
     def build(self, lang_state: gr.State, translator: Optional[Translator] = None) -> None:
         """Constructs the layout and wires events."""
@@ -140,9 +142,17 @@ class GradCamTab:
                         self.video1_out = gr.Video(
                             label=t(TranslationKey.GRADCAM_OUTPUT1_LABEL),
                         )
+                        self.pred1_label = gr.Label(
+                            label=t(TranslationKey.GRADCAM_PREDICTION_LABEL),
+                            num_top_classes=5,
+                        )
                     with gr.Column(scale=1):
                         self.video2_out = gr.Video(
                             label=t(TranslationKey.GRADCAM_OUTPUT2_LABEL),
+                        )
+                        self.pred2_label = gr.Label(
+                            label=t(TranslationKey.GRADCAM_PREDICTION_LABEL),
+                            num_top_classes=5,
                         )
 
             # ---- Event Wiring ----
@@ -194,7 +204,7 @@ class GradCamTab:
                     self.manual_class_dropdown,
                     lang_state,
                 ],
-                outputs=[self.video1_out, self.video2_out],
+                outputs=[self.video1_out, self.pred1_label, self.video2_out, self.pred2_label],
             )
 
             self.demo.load(
@@ -254,8 +264,14 @@ class GradCamTab:
         def update_video1_out(lang):
             return gr.update(label=translator.t(TranslationKey.GRADCAM_OUTPUT1_LABEL, lang=lang))
 
+        def update_pred1_label(lang):
+            return gr.update(label=translator.t(TranslationKey.GRADCAM_PREDICTION_LABEL, lang=lang))
+
         def update_video2_out(lang):
             return gr.update(label=translator.t(TranslationKey.GRADCAM_OUTPUT2_LABEL, lang=lang))
+
+        def update_pred2_label(lang):
+            return gr.update(label=translator.t(TranslationKey.GRADCAM_PREDICTION_LABEL, lang=lang))
 
         updates.update({
             self.tab: update_tab,
@@ -268,6 +284,8 @@ class GradCamTab:
             self.manual_class_dropdown: update_manual_class_dropdown,
             self.generate_btn: update_generate_btn,
             self.video1_out: update_video1_out,
+            self.pred1_label: update_pred1_label,
             self.video2_out: update_video2_out,
+            self.pred2_label: update_pred2_label,
         })
         return updates

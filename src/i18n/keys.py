@@ -122,6 +122,9 @@ class TranslationKey(str, Enum):
     GRADCAM_LAYER_INFO = "gradcam.layer_info"
     GRADCAM_MANUAL_CLASS_INFO = "gradcam.manual_class_info"
 
+    # Grad-CAM Prediction display
+    GRADCAM_PREDICTION_LABEL = "gradcam.prediction_label"
+
     # Grad-CAM Errors
     GRADCAM_ERR_SELECT_VIDEO = "gradcam.err_select_video"
     GRADCAM_ERR_UPLOAD_VIDEO = "gradcam.err_upload_video"

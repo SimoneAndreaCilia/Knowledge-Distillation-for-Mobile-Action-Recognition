@@ -105,6 +105,7 @@
     "class_mode_info": "ground_truth — usa l'etichetta nota del video come target Grad-CAM (disponibile solo per i video del dataset). predicted — usa la classe predetta top-1 del modello come target. manual — permette di scegliere qualsiasi classe dalla lista.",
     "layer_info": "layer4 — ultimo blocco ResNet, feature semantiche di alto livello (consigliato per Teacher/ResNet). layer3 — penultimo blocco ResNet, feature di livello intermedio. stages[-1] — ultimo stage MobileNet, consigliato per i modelli Student. stages[4] — stage MobileNet più precoce, feature di basso livello. È possibile digitare un nome di layer personalizzato.",
     "manual_class_info": "Seleziona la classe azione da usare come target per Grad-CAM. Attivo solo quando la modalità 'manual' è selezionata.",
+    "prediction_label": "🔮 Top-5 Predizioni",
     "err_select_video": "Seleziona un video dal dataset.",
     "err_upload_video": "Carica un video.",
     "err_no_ground_truth": "Nessuna Ground Truth per i video caricati. Scegli 'Predetta' o 'Manuale'.",
