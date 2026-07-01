@@ -1,0 +1,7 @@
+Top-1 and Top-5 Accuracy -- HMDB-51 Split 1 Validation
+=======================================================
+Model                                       Top-1    Top-5
+-------------------------------------------------------
+Teacher (ResNet3D-50)                      62.94%   89.87%
+Student Baseline (Hard Labels)             20.13%   44.44%
+Student KD+AT (beta=1000, T=10)            47.06%   76.14%
